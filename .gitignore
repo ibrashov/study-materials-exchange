@@ -17,3 +17,10 @@ node_modules/
 build/
 dist/
 uploads/
+
+# Keep safe configuration templates tracked
+!.env.example
+.vite/
+.playwright/
+test-results/
+playwright-report/
