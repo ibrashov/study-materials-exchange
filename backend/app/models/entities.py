@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, func, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 class Base(DeclarativeBase):
@@ -13,6 +13,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(254), unique=True)
     password_hash: Mapped[str] = mapped_column(Text)
     role: Mapped[str] = mapped_column(String(10), default='student')
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=text('true'))
 
 class Category(Base):
     __tablename__ = 'categories'
@@ -41,4 +42,5 @@ class Material(Base):
     title: Mapped[str] = mapped_column(String(200))
     file_path: Mapped[str] = mapped_column(Text)
     file_size_bytes: Mapped[int] = mapped_column(Integer)
+    download_count: Mapped[int] = mapped_column(Integer, server_default=text('0'))
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

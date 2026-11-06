@@ -9,7 +9,7 @@ from .core.config import settings
 
 app = FastAPI(title='Study Materials Exchange', version='0.2.0')
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins,
-                   allow_credentials=False, allow_methods=['GET', 'POST'],
+                   allow_credentials=False, allow_methods=['GET', 'POST', 'PATCH', 'DELETE'],
                    allow_headers=['Content-Type', 'Authorization'])
 app.include_router(router)
 

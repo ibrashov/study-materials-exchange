@@ -48,3 +48,10 @@ def stored_path(name: str) -> Path:
     if candidate.parent != directory or candidate.suffix != '.pdf':
         raise HTTPException(404, 'File not found')
     return candidate
+
+def remove_stored(name: str):
+    """Best effort after commit; a file left behind is listed by the storage check."""
+    try:
+        stored_path(name).unlink(missing_ok=True)
+    except (HTTPException, OSError):
+        pass

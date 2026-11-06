@@ -30,6 +30,8 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
     valid = verify_password(body.password, user.password_hash if user else DUMMY_HASH)
     if not valid or user is None:
         raise HTTPException(401, 'Invalid email or password')
+    if not user.is_active:
+        raise HTTPException(403, 'Account is disabled')
     return TokenResponse(access_token=create_token(user.user_id))
 
 @router.get('/me', response_model=UserResponse)

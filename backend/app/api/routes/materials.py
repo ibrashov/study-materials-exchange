@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, Query, UploadFile
 from fastapi.responses import FileResponse
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from ...db.session import get_db
 from ...models.entities import Category, Course, Material, User
 from ...schemas.materials import MaterialList, MaterialResponse, CategoryList, CourseList
-from ...services.storage import save_pdf, stored_path
+from ...services.storage import remove_stored, save_pdf, stored_path
 from ..dependencies import current_user, require_student
 
 router = APIRouter(tags=['materials'])
@@ -68,5 +68,20 @@ def download(material_id: int = Path(..., gt=0), user: User = Depends(current_us
     path = stored_path(material.file_path)
     if not path.is_file():
         raise HTTPException(404, 'File not found')
+    db.execute(update(Material).where(Material.material_id == material_id)
+               .values(download_count=Material.download_count + 1))
+    db.commit()
     return FileResponse(path, media_type='application/pdf', filename=f'material-{material_id}.pdf',
                         headers={'X-Content-Type-Options': 'nosniff'})
+
+@router.delete('/materials/{material_id}', status_code=204)
+def delete_material(material_id: int = Path(..., gt=0), user: User = Depends(current_user), db: Session = Depends(get_db)):
+    material = db.get(Material, material_id)
+    if material is None:
+        raise HTTPException(404, 'Material not found')
+    if user.role != 'admin' and material.uploader_id != user.user_id:
+        raise HTTPException(403, 'Only the uploader or an administrator can delete this material')
+    name = material.file_path
+    db.delete(material)
+    db.commit()
+    remove_stored(name)

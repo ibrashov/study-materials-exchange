@@ -13,6 +13,8 @@ def current_user(credentials: HTTPAuthorizationCredentials | None = Depends(bear
     user = db.get(User, token_user_id(credentials.credentials))
     if user is None:
         raise HTTPException(401, 'Invalid or expired token')
+    if not user.is_active:
+        raise HTTPException(403, 'Account is disabled')
     return user
 
 def require_student(user: User = Depends(current_user)):
