@@ -1,0 +1,4 @@
+.header-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.language-switcher { display: flex; gap: 4px; }
+.language-switcher button { padding: 4px 10px; font-size: .85rem; }
+.language-switcher button[aria-pressed=true] { background: #164c69; border-color: #164c69; color: white; }
