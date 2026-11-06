@@ -13,5 +13,7 @@ class Settings(BaseSettings):
     auth_secret: str = ''
     token_minutes: int = Field(default=60, ge=1, le=1440)
     uploads_dir: Path = ROOT / 'uploads'
+    backups_dir: Path = ROOT / 'backups'
+    backup_keep: int = Field(default=7, ge=1, le=365)
 
 settings = Settings()
