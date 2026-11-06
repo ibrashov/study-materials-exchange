@@ -1,3 +1,5 @@
 # Module responsibility
 
-Alibek owns login and registration UI. Use ../../api/client.js for API calls. Authentication remains planned.
+Alibek: AuthForm.jsx implements real registration/login through ../../api/client.js. App keeps tokens only in memory. See docs/week10/ALIBEK_FRONTEND.md.
+
+Implementation prepared by Codex; personal owner review pending.

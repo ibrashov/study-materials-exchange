@@ -1,3 +1,5 @@
 # Module responsibility
 
-Talgat adds engine, sessions and migrations here. Read DATABASE_URL from core.config; do not connect during module import. No database connection is implemented.
+Talgat: session.py supplies the shared lazy PostgreSQL engine and request session. seed.py inserts repeatable fictional taxonomy and optional CLI-only admin. Alembic lives in backend/migrations; configuration comes from core/config.py. See docs/week10/TALGAT_BACKEND.md.
+
+Implementation prepared by Codex; personal owner review pending.

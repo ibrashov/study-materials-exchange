@@ -1,113 +1,122 @@
 # Study Materials Exchange
 
-A Basics of Information Systems university project helping students find and share notes, presentations and course resources. Guests will browse/search; authenticated students will upload materials.
+Basics of Information Systems university project — Week 10 implementation, 2026-11-05.
 
-## TEAM MEMBERS: READ THIS BEFORE WRITING CODE
-
-Read [TEAM_CONVENTIONS.md](docs/TEAM_CONVENTIONS.md) and [API_CONTRACT.md](docs/API_CONTRACT.md). Every member must follow the same field names, API paths, folder boundaries and configuration. Discuss proposed decisions before implementing them.
+Read [team conventions](docs/TEAM_CONVENTIONS.md), [API contract](docs/API_CONTRACT.md), and [team status](docs/WEEK10_TEAM_STATUS.md) first.
 
 ## Current stage
 
-Week 10: a working React + Vite frontend and Python FastAPI skeleton communicate through GET /api/health. Loading, failure, retry and planned-module navigation are implemented and browser-tested. PostgreSQL is planned, not connected. No authentication, real material operations, storage, search or administration is implemented.
+The existing React/Vite and FastAPI foundation now connects to PostgreSQL. Implemented: student registration, login, server role checks, admin counts, local PDF upload, listing/search, authenticated download, and core English/Russian UI. The complete browser workflow was exercised against a separate PostgreSQL test database. This is a local prototype, not a production release.
 
-Week 9 achievements are preserved: four-table SQLite prototype, fictional sample metadata, course reporting query, ERD, requirements and seven database tests. SQLite is historical work, not the application's configured database. See [Week 9 progress](docs/TASK09_PROGRESS.md).
+Historical work is preserved: Week 9 SQLite schema, ERD, sample data and seven tests are unchanged; the original health endpoint, shared router/client, shell and connection panel remain. Pre-feature versions of the four integration documents are in [history/week10-skeleton](docs/history/week10-skeleton). Earlier evidence remains in [VERIFICATION.md](docs/VERIFICATION.md) and [WEEK10_ANUAR_PROGRESS.md](docs/WEEK10_ANUAR_PROGRESS.md).
 
-## Team
+## Team and ownership
 
-| Member | Role |
-| --- | --- |
-| Ibrashov Anuar | Project Manager & System Analyst: architecture, skeleton, contracts, conventions and coordination |
-| Kozhakhmetov Talgat | Database & Backend: PostgreSQL, real operations and authentication |
-| Ainakul Arnur | Admin Panel & Testing: admin, validation, roles and integration tests |
-| Abylay Daryn | File Management & Search: storage, upload, search and download |
-| Anuarbek Alibek | Frontend & Multilingual: login/registration, materials/upload UI and translations |
+| Member | ID | Week 10 area |
+| --- | --- | --- |
+| Kozhakhmetov Talgat | 24B031852 | PostgreSQL, migrations, registration/login |
+| Ibrashov Anuar | 24B031812 | Existing foundation, contracts, integration and coordination |
+| Ainakul Arnur | 24B031609 | Admin API/UI, role and validation tests |
+| Abylay Daryn | 24B031598 | Storage/search/download, database integrity |
+| Anuarbek Alibek | 24B031648 | Forms, styling and EN/RU labels |
 
-## Structure and stack
+This implementation was prepared by Codex. No teammate's personal authorship, review or verification is claimed. Each student must review and test their area before presenting it.
 
-```text
-frontend/        React 19 + Vite 7; src/api, components, pages, features, locales
-backend/         FastAPI; app/api, schemas, models, services, db, core
-database/       Week 9 SQLite scripts and ERD (preserved)
-docs/           requirements, integration standards, architecture and progress
-tests/          existing SQLite tests and new backend health tests
-```
+## Windows PowerShell setup
 
-Detailed tree and ownership: [team guide](docs/TEAM_CONVENTIONS.md). Future PostgreSQL belongs to Talgat; file storage belongs to Daryn.
+Requirements: Python 3.12+, Node 22.12+, PostgreSQL 17 binaries. Verified with Python 3.14.3, Node 24.13.1 and PostgreSQL 17.6. Microsoft Edge is used by browser tests. No Docker or cloud account is required.
 
-## Setup ? Windows PowerShell
+Run from the repository root:
 
-Requirements: Python 3.12+ and Node.js 22.12+ (verified here with Python 3.14.3 and Node 24.13.1). Run from the repository root. Commands use npm.cmd to avoid PowerShell npm.ps1 execution-policy issues.
-
-```powershell
+~~~powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
-Copy-Item backend/.env.example backend/.env
+# If this environment's venv lacks pip, use the host pip instead:
+python -m pip --python .venv install -r backend/requirements.txt
 Copy-Item frontend/.env.example frontend/.env
 cd frontend
 npm.cmd ci
 cd ..
-```
+~~~
 
-If venv creation reports an ensurepip error but creates its Python executable (as in this environment), use the host pip to bootstrap dependencies into it:
+Choose one PostgreSQL setup:
 
-```powershell
-python -m pip --python .venv install -r backend/requirements.txt
-```
+1. **Automatic project-local instance (configured in this workspace):** the command below uses installed PostgreSQL binaries, starts a separate server on 127.0.0.1:55432, creates study_materials and study_materials_test, and generates ignored backend/.env credentials. It preserves any existing backend/.env and does not modify the Windows PostgreSQL service. It uses a local development superuser; do not deploy this account.
 
-Terminal 1, from the repository root:
+~~~powershell
+# Set PG_BIN only if PostgreSQL binaries are elsewhere:
+# $env:PG_BIN = 'C:\Program Files\PostgreSQL\17\bin'
+.\.venv\Scripts\python.exe scripts/local_postgres.py start
+~~~
 
-```powershell
+2. **Your existing PostgreSQL service:** create separate development and disposable test databases using a local account you control. Copy backend/.env.example to backend/.env only if that file does not exist. Set DATABASE_URL, TEST_DATABASE_URL (database name must end in _test) and a random AUTH_SECRET of at least 32 characters. Use postgresql+psycopg URLs and URL-encode special characters in credentials. Do not paste passwords into chat or commit them. Never point tests at the development database.
+
+Then migrate and seed:
+
+~~~powershell
+.\.venv\Scripts\python.exe -m alembic upgrade head
+.\.venv\Scripts\python.exe -m backend.app.db.seed
+# Optional separate local demo admin; prompts for email and hidden password:
+.\.venv\Scripts\python.exe -m backend.app.db.seed --admin
+~~~
+
+Seeding is repeatable and inserts only fictional category/course examples. The admin command does not promote an existing student or reset an existing admin password. DEMO_ADMIN_EMAIL and DEMO_ADMIN_PASSWORD may alternatively be supplied in the local environment; never commit them.
+
+Terminal 1, repository root:
+
+~~~powershell
 .\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
-```
+~~~
 
-Terminal 2, from the repository root:
+Terminal 2:
 
-```powershell
+~~~powershell
 cd frontend
 npm.cmd run dev
-```
+~~~
 
-Frontend: http://127.0.0.1:5173 (also allowed CORS origin: http://localhost:5173).
-Backend health: http://127.0.0.1:8000/api/health.
-API documentation: http://127.0.0.1:8000/docs.
+Open http://127.0.0.1:5173. Choose Registration, enter name/email and matching 12–128-character passwords, then sign in. Upload a readable PDF with a category and course; search its title on Materials. Admin navigation appears after signing in with a CLI-created admin.
 
-The backend root `/` has no page; use /docs or /api/health. Stop servers with Ctrl+C. Health returns `{"status":"ok","service":"study-materials-backend"}` and checks API availability only.
+FastAPI docs: http://127.0.0.1:8000/docs. Health: /api/health reports API availability only. The backend root / has no webpage. To inspect actual rows without displaying password hashes:
 
-Backend .env is optional and loaded centrally. DATABASE_URL is empty and unused; no PostgreSQL installation is required. Frontend uses VITE_API_BASE_URL, defaulting to http://127.0.0.1:8000/api. Restart Vite after changing it. VITE values are public; never put credentials in them. Local origins are restricted and only GET is enabled cross-origin until future routes are integrated. .env, local databases, uploads, dependencies and caches are ignored; safe .env.example files are tracked.
+~~~powershell
+.\.venv\Scripts\python.exe scripts/inspect_database.py
+~~~
 
-## Verify before merging
+Stop application servers with Ctrl+C. Stop the optional project database with:
 
-From repository root, first run static validation:
+~~~powershell
+.\.venv\Scripts\python.exe scripts/local_postgres.py stop
+~~~
 
-```powershell
-.\.venv\Scripts\python.exe -m compileall -q backend tests
+## Verification
+
+Run Python tests before browser tests; both use the separate test database. Python tests truncate the four canonical tables in that database. Do not run them concurrently with a browser demo using that database.
+
+~~~powershell
+.\.venv\Scripts\python.exe -m compileall -q backend tests scripts
 node --check frontend/src/api/client.js
-node --check frontend/tests/client.test.js
+node --check frontend/src/locales/messages.js
+node --check frontend/browser-tests/week10.spec.js
 node --check frontend/playwright.config.js
-node --check frontend/browser-tests/connection.spec.js
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m alembic check
 python -m pip --python .venv check
-```
-
-With backend running on port 8000, from frontend/:
-
-```powershell
+# With the development backend running on port 8000:
+cd frontend
 npm.cmd test
 npm.cmd run build
 npm.cmd run test:browser
-npm.cmd audit
-```
+~~~
 
-Browser tests require Microsoft Edge installed and port 5173 free; Playwright starts/stops Vite itself. They test actual CORS/HTTP communication, loading, blocked network errors, retry recovery and planned navigation. API-client tests use a real backend for the first test and controlled failures for negative tests. Build output is frontend/dist (ignored); `npm.cmd run preview` can preview it, but port 4173 must be explicitly added to CORS_ORIGINS to contact the backend.
+Browser tests start their own backend on 8001 and Vite on 5173 and stop them afterwards; keep these ports free. That backend requires TEST_DATABASE_URL, seeds taxonomy and creates a test-only admin with a random run-specific password. Test upload bytes live in ignored .local-postgres/browser-uploads. The test-only launcher is not a development server. If TEST_DATABASE_URL is missing, Python PostgreSQL tests are explicitly skipped; browser tests fail instead of silently using SQLite.
 
-Verified results: 10 Python tests, 2 API-client tests and 2 Edge browser tests passed; production build passed, dependency check passed, npm audit reported 0 vulnerabilities. See [verification details](docs/VERIFICATION.md) for environment limitations and exact results.
+Results on 2026-11-05: 29 Python tests passed (7 historical SQLite, 3 health, 19 PostgreSQL/feature tests), 2 client tests passed, 7 Edge browser tests passed, frontend production build passed, migration drift check passed, dependency consistency passed. Two feature tests deliberately simulate a database failure or bypass PDF parsing to isolate exact byte counting; see [test report](docs/week10/TEST_REPORT.md). Windows sandbox process/temp-file restrictions required approved execution permissions during verification.
 
-## Reference and next milestone
+## Prototype decisions and remaining work
 
-- [Requirements](docs/requirements.md), [ER diagram](database/ERD.md), [SQL schema](database/schema.sql), [database tests](tests/test_database.py)
-- [Team conventions](docs/TEAM_CONVENTIONS.md), [API contract](docs/API_CONTRACT.md), [architecture](docs/ARCHITECTURE.md)
-- [Anuar's Week 10 contribution and presentation](docs/WEEK10_ANUAR_PROGRESS.md), [complete changed-file list](docs/WEEK10_FILE_MANIFEST.md)
+Week 10 proposed decisions implemented consistently: PDF-only uploads; required course; authenticated downloads; HS256 tokens valid 60 minutes; tokens only in React memory (refresh logs out); lowercase trimmed emails; 12–128-character passwords. Public registration always creates students. The backend checks roles on every protected request.
 
-Week 11 plan: agree course selection/authentication decisions, integrate Talgat's PostgreSQL/authentication with Daryn's storage and Alibek's UI, and have Arnur test the first real vertical workflow. Search performance, production deployment, backups and restoration remain future work. Maximum file size remains 52,428,800 bytes; guest uploads remain forbidden. The skeleton demonstrates integration rather than completed feature delivery.
+Remaining: personal team reviews, formal decision approval, representative three-second search measurement, crash-orphan file reconciliation, backup/restore, rate limiting, malware scanning, broader accessibility testing, account recovery and production hardening. PDF structure validation is not malware detection. No guest download approval is claimed.
 
-No commit or push was performed. Review changes and run the demo before committing manually. Suggested commit: `chore(architecture): add shared full-stack skeleton and team conventions`.
+See [seven-minute demo](docs/WEEK10_DEMO_GUIDE.md), [team status and Week 11 tasks](docs/WEEK10_TEAM_STATUS.md), [five role reports](docs/week10), and [suggested commit groups](docs/week10/COMMIT_PLAN.md). No commit, push, PR or issue was created.

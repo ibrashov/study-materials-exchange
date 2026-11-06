@@ -1,0 +1,70 @@
+.materials-search {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: end;
+  background: white;
+  border: 1px solid #dce2eb;
+  border-radius: 12px;
+  padding: 18px 24px;
+  margin: 32px 0 20px;
+}
+.materials-field { display: grid; gap: 4px; min-width: 0; }
+.materials-field label { margin: 0; font-size: .85rem; font-weight: 600; color: #23425e; }
+.materials-field input,
+.materials-field select {
+  width: 100%;
+  font: inherit;
+  color: #172539;
+  background: white;
+  border: 1px solid #c3ceda;
+  border-radius: 8px;
+  height: 44px;
+  padding: 0 12px;
+}
+.materials-field input:focus-visible,
+.materials-field select:focus-visible { outline: 3px solid #bd6800; outline-offset: 2px; }
+.materials-field select:disabled { background: #f4f6fa; color: #586b80; cursor: not-allowed; }
+.materials-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.materials-submit { background: #164c69; border-color: #164c69; color: white; }
+.materials-hint { color: #586b80; font-size: .9rem; }
+
+.materials-summary { color: #586b80; min-height: 2.5rem; }
+.materials-summary p { margin: 8px 0; }
+.materials-notice {
+  background: white;
+  border: 1px solid #dce2eb;
+  border-left: 5px solid #b64b35;
+  border-radius: 12px;
+  padding: 18px 24px;
+}
+.materials-notice-unavailable { border-left-color: #697f99; }
+.materials-notice h2 { margin: 0 0 4px; }
+.materials-notice p { margin: 0 0 14px; color: #586b80; overflow-wrap: anywhere; }
+
+.materials-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 14px;
+}
+.materials-list[aria-busy=true] { opacity: .6; }
+.materials-item {
+  background: white;
+  border: 1px solid #dce2eb;
+  border-radius: 12px;
+  padding: 18px 24px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.materials-item h2 { margin: 4px 0; line-height: 1.3; }
+.materials-item p { margin: 0; }
+.materials-tag { font-size: .75rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: #216381; }
+.materials-item .materials-meta { color: #586b80; font-size: .9rem; margin-top: 6px; }
+.materials-pager { justify-content: space-between; }
+
+@media (max-width: 720px) {
+  .materials-search { grid-template-columns: minmax(0, 1fr); padding: 16px 18px; }
+}

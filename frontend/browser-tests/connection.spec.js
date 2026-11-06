@@ -1,13 +1,12 @@
 import { test, expect } from '@playwright/test';
-
-test('real backend connection and planned navigation', async ({ page }) => {
+test('real backend connection and working login navigation', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('status')).toContainText('Connected');
   await expect(page.getByRole('status')).toContainText('study-materials-backend');
   await page.getByRole('button', { name: 'Login', exact: true }).click();
-  await expect(page.getByText('This feature is not implemented yet.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Login', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
 });
-
 test('loading, network error and retry recovery', async ({ page }) => {
   let release;
   const gate = new Promise(resolve => { release = resolve; });
