@@ -8,26 +8,26 @@ const Selector = ({ id, label, allLabel, value, onChange, request, options }) =>
   </select>
 </div>;
 
-export default function MaterialsSearchForm({ draft, onChange, onSubmit, onClear, showClear, categories, courses, filtersFailed, onRetryFilters }) {
+export default function MaterialsSearchForm({ t, draft, onChange, onSubmit, onClear, showClear, categories, courses, filtersFailed, onRetryFilters }) {
   const update = field => event => onChange({ ...draft, [field]: event.target.value });
-  return <form className="materials-search" role="search" aria-label="Search study materials"
+  return <form className="materials-search" role="search" aria-label={t('materials.searchFormLabel')}
     onSubmit={event => { event.preventDefault(); onSubmit(); }}>
     <div className="materials-field">
-      <label htmlFor="materials-q">Search</label>
-      <input id="materials-q" type="search" placeholder="Title or course name" value={draft.q} onChange={update('q')}/>
+      <label htmlFor="materials-q">{t('materials.searchLabel')}</label>
+      <input id="materials-q" type="search" placeholder={t('materials.searchPlaceholder')} value={draft.q} onChange={update('q')}/>
     </div>
-    <Selector id="materials-category" label="Category" allLabel="All categories" value={draft.categoryId}
+    <Selector id="materials-category" label={t('category')} allLabel={t('materials.allCategories')} value={draft.categoryId}
       onChange={update('categoryId')} request={categories}
       options={categories.data?.map(item => <option key={item.category_id} value={item.category_id}>{item.category_name}</option>)}/>
-    <Selector id="materials-course" label="Course" allLabel="All courses" value={draft.courseId}
+    <Selector id="materials-course" label={t('course')} allLabel={t('materials.allCourses')} value={draft.courseId}
       onChange={update('courseId')} request={courses}
       options={courses.data?.map(item => <option key={item.course_id} value={item.course_id}>{item.course_name} ({item.course_code})</option>)}/>
     <div className="materials-actions">
-      <button type="submit" className="materials-submit">Search</button>
-      {showClear && <button type="button" onClick={onClear}>Clear search</button>}
+      <button type="submit" className="materials-submit">{t('search')}</button>
+      {showClear && <button type="button" onClick={onClear}>{t('materials.clear')}</button>}
       {filtersFailed && <>
-        <span className="materials-hint">Category and course filters are unavailable right now.</span>
-        <button type="button" onClick={onRetryFilters}>Retry filters</button>
+        <span className="materials-hint">{t('materials.filtersFailed')}</span>
+        <button type="button" onClick={onRetryFilters}>{t('materials.retryFilters')}</button>
       </>}
     </div>
   </form>;

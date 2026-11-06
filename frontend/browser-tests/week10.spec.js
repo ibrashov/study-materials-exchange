@@ -69,6 +69,7 @@ test('browser to PostgreSQL: register, login, upload, search, download, student 
   await page.getByRole('button', { name: 'Materials', exact: true }).click();
   await page.getByLabel('Search', { exact: true }).fill(title);
   await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Showing 1–1 of 1 material');
   await expect(page.getByRole('heading', { name: title })).toBeVisible();
   const downloaded = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download PDF' }).click();

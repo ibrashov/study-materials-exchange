@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ApiError, getCategories, getCourses, getMaterials } from '../src/api/client.js';
+import { ApiError, deleteMaterial, getCategories, getCourses, getMaterials, getUsers, updateUser } from '../src/api/client.js';
 
 const material = {
   material_id: 1, uploader_id: 1, category_id: 1, course_id: 1,
@@ -119,4 +119,25 @@ test('getCategories and getCourses reject items without a usable name', async t 
 test('getCourses rejects a course without its course code', async t => {
   respondWith(t, json({ items: [{ course_id: 1, course_name: 'Database Systems', description: null }] }));
   await assert.rejects(getCourses(), /Unexpected backend response/);
+});
+
+test('deleteMaterial sends DELETE with the token and accepts an empty 204', async t => {
+  const calls = respondWith(t, () => new Response(null, { status: 204 }));
+  assert.equal(await deleteMaterial(5, 'token-1'), null);
+  assert.match(calls[0].url, /\/api\/materials\/5$/);
+  assert.equal(calls[0].options.method, 'DELETE');
+  assert.equal(calls[0].options.headers.Authorization, 'Bearer token-1');
+});
+
+test('getUsers sends the search text and paging', async t => {
+  const calls = respondWith(t, json({ items: [], total: 0, limit: 50, offset: 50 }));
+  await getUsers({ q: ' ann ', offset: 50, token: 'token-1' });
+  assert.match(calls[0].url, /\/api\/admin\/users\?q=ann&limit=50&offset=50$/);
+});
+
+test('updateUser patches only the given fields', async t => {
+  const calls = respondWith(t, json({ user_id: 2 }));
+  await updateUser(2, { is_active: false }, 'token-1');
+  assert.equal(calls[0].options.method, 'PATCH');
+  assert.equal(calls[0].options.body, '{"is_active":false}');
 });

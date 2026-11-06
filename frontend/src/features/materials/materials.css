@@ -68,3 +68,4 @@
 @media (max-width: 720px) {
   .materials-search { grid-template-columns: minmax(0, 1fr); padding: 16px 18px; }
 }
+.materials-item-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }

@@ -28,6 +28,7 @@ export async function request(endpoint, { token, body, signal, method = 'GET', b
     const data = await response.json().catch(() => ({}));
     throw new ApiError(response.status, data.error?.code || 'http_' + response.status, data.error?.message || 'HTTP ' + response.status);
   }
+  if (response.status === 204) return null;
   return binary ? response.blob() : response.json();
 }
 export const register = body => request('/auth/register', { method: 'POST', body });
@@ -107,3 +108,18 @@ export async function downloadMaterial(id, token) {
   document.body.append(link); link.click(); link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+export const deleteMaterial = (id, token) => request('/materials/' + id, { method: 'DELETE', token });
+export const getOverview = (token, signal) => request('/admin/overview', { token, signal });
+export const getCourseReport = (token, signal) => request('/admin/reports/courses', { token, signal });
+export const getDownloadReport = (token, signal) => request('/admin/reports/downloads', { token, signal });
+export const getStorageCheck = (token, signal) => request('/admin/storage-check', { token, signal });
+export function getUsers({ q = '', limit = 50, offset = 0, token, signal } = {}) {
+  const params = new URLSearchParams();
+  if (q.trim()) params.set('q', q.trim());
+  params.set('limit', limit);
+  params.set('offset', offset);
+  return request('/admin/users?' + params, { token, signal });
+}
+export const updateUser = (id, body, token) => request('/admin/users/' + id, { method: 'PATCH', body, token });
+export const addCategory = (body, token) => request('/admin/categories', { method: 'POST', body, token });
+export const addCourse = (body, token) => request('/admin/courses', { method: 'POST', body, token });

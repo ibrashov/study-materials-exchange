@@ -1,8 +1,8 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { connectionError, getHealth } from '../api/client';
+import { getHealth } from '../api/client';
 
-export default function BackendStatus() {
+export default function BackendStatus({ t }) {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState({ status: 'loading' });
   useEffect(() => {
@@ -12,17 +12,17 @@ export default function BackendStatus() {
     const timeout = setTimeout(() => controller.abort(), 8000);
     getHealth({ signal: controller.signal })
       .then(data => { if (active) setState({ status: 'connected', data }); })
-      .catch(error => { if (active) setState({ status: 'error', message: connectionError(error) }); })
+      .catch(error => { if (active) setState({ status: 'error', error }); })
       .finally(() => clearTimeout(timeout));
     return () => { active = false; clearTimeout(timeout); controller.abort(); };
   }, [attempt]);
   return <section className={`connection ${state.status}`} aria-labelledby="connection-title">
-    <h2 id="connection-title">Backend connection</h2>
+    <h2 id="connection-title">{t('connection.title')}</h2>
     <div role="status" aria-live="polite">
-      {state.status === 'loading' && <p>Connecting to FastAPI?</p>}
-      {state.status === 'connected' && <p>Connected ? {state.data.service} ? {state.data.status}</p>}
-      {state.status === 'error' && <p>{state.message}</p>}
+      {state.status === 'loading' && <p>{t('connection.loading')}</p>}
+      {state.status === 'connected' && <p>{t('connection.connected', state.data)}</p>}
+      {state.status === 'error' && <p>{t('connection.failed', { details: state.error.message })}</p>}
     </div>
-    <button onClick={() => setAttempt(value => value + 1)} disabled={state.status === 'loading'}>Check connection</button>
+    <button onClick={() => setAttempt(value => value + 1)} disabled={state.status === 'loading'}>{t('connection.check')}</button>
   </section>;
 }
