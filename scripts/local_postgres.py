@@ -3,9 +3,11 @@ import argparse
 import os
 from pathlib import Path
 import secrets
-import shutil
 import subprocess
+import sys
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from backend.app.services.pg_tools import pg_tool
 LOCAL = ROOT / '.local-postgres'
 DATA = LOCAL / 'data'
 PORT = '55432'
@@ -14,9 +16,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['start', 'stop'], nargs='?', default='start')
     args = parser.parse_args()
-    pg_bin = Path(os.environ.get('PG_BIN', 'C:/Program Files/PostgreSQL/17/bin'))
     def run(name, *args, check=True, **kwargs):
-        executable = shutil.which(name) or str(pg_bin / (name + '.exe'))
+        executable = pg_tool(name)
         return subprocess.run([executable, *map(str, args)], check=check, **kwargs)
     if args.action == 'stop':
         run('pg_ctl', '-D', DATA, '-m', 'fast', '-w', 'stop')
