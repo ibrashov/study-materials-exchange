@@ -13,20 +13,20 @@ function Dashboard({ session, t }) {
   const downloads = useRequest(signal => getDownloadReport(token, signal), [token]);
   const storage = useRequest(signal => getStorageCheck(token, signal), [token]);
   return <section><h1>{t('admin')}</h1>
-    <AdminPanel id="admin-overview" title={t('admin')} request={overview} t={t}>{data => <dl className="stats">
+    <AdminPanel id="admin-overview" title={t('admin.overview')} request={overview} t={t}>{data => <dl className="stats">
       <div><dt>{t('totalUsers')}</dt><dd>{data.total_users}</dd></div>
       <div><dt>{t('totalMaterials')}</dt><dd>{data.total_materials}</dd></div>
     </dl>}</AdminPanel>
     <AdminPanel id="admin-courses" title={t('admin.courses')} request={courses} t={t}>{data => <>
       <p className="admin-help">{t('admin.coursesHelp')}</p>
-      {data.items.length === 0 ? <p>{t('admin.nothing')}</p> : <div className="admin-table"><table aria-labelledby="admin-courses">
+      {data.items.length === 0 ? <p>{t('admin.nothing')}</p> : <div className="admin-table" tabIndex={0}><table aria-labelledby="admin-courses">
         <thead><tr><th scope="col">{t('course')}</th><th scope="col">{t('admin.code')}</th><th scope="col">{t('admin.materialCount')}</th></tr></thead>
         <tbody>{data.items.map(row => <tr key={row.course_id}><td>{row.course_name}</td><td>{row.course_code}</td>
           <td>{row.material_count === 0 ? <span className="admin-flag">{t('admin.noMaterials')}</span> : row.material_count}</td></tr>)}</tbody>
       </table></div>}</>}</AdminPanel>
     <AdminPanel id="admin-downloads" title={t('admin.downloads')} request={downloads} t={t}>{data => <>
       <dl className="stats"><div><dt>{t('admin.totalDownloads')}</dt><dd>{data.total_downloads}</dd></div></dl>
-      {data.items.length === 0 ? <p>{t('admin.nothing')}</p> : <div className="admin-table"><table aria-labelledby="admin-downloads">
+      {data.items.length === 0 ? <p>{t('admin.nothing')}</p> : <div className="admin-table" tabIndex={0}><table aria-labelledby="admin-downloads">
         <thead><tr><th scope="col">{t('admin.material')}</th><th scope="col">{t('course')}</th><th scope="col">{t('admin.downloadCount')}</th></tr></thead>
         <tbody>{data.items.map(row => <tr key={row.material_id}><td>{row.title}</td><td>{row.course_name}</td><td>{row.download_count}</td></tr>)}</tbody>
       </table></div>}</>}</AdminPanel>

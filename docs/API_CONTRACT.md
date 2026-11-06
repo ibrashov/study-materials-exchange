@@ -28,7 +28,26 @@ No matches => items [], total 0. Invalid query => 422. Three-second performance 
 
 **GET /api/categories** — public. 200 {"items":[{"category_id":1,"category_name":"Lecture Notes","description":null,"created_at":"2026-11-05T13:00:00+05:00"}]}. **GET /api/courses** — public. 200 {"items":[{"course_id":1,"course_name":"Introduction to Programming","course_code":"PROG101","description":null}]}. All keys required; descriptions nullable. IDs come from PostgreSQL, never hardcoded in forms. CLI seeds fictional taxonomy, not student accounts.
 
+## Material deletion
+
+**DELETE /api/materials/{material_id}** — the uploader or an admin. 204 with no body; removes the row, then the file. 401 guest, 403 other student, 404 unknown ID.
+
 ## Admin and health
+
+All routes under /api/admin require an admin: 401 guest or invalid token, 403 student.
+
+**GET /api/admin/users** — optional q (name or email), limit (1–100, default 50), offset. 200 {"items":[{"user_id":1,"full_name":"Example Student","email":"student@example.com","role":"student","is_active":true}],"total":1,"limit":50,"offset":0}.
+
+**PATCH /api/admin/users/{user_id}** — JSON with role and/or is_active, no other fields. 200 same user object. 404 unknown, 409 changing your own account, 422 invalid or empty body. A blocked user receives 403 on login and on every protected route, immediately.
+
+**GET /api/admin/reports/courses** — 200 {"items":[{"course_id":1,"course_name":"Database Systems","course_code":"DB101","material_count":0}]}, including empty courses, fewest materials first.
+
+**GET /api/admin/reports/downloads** — optional limit (1–100, default 10). 200 {"items":[{"material_id":1,"title":"Notes","course_name":"Programming","download_count":3}],"total_downloads":3}. Only successful downloads are counted.
+
+**GET /api/admin/storage-check** — 200 {"orphan_files":0,"partial_files":0,"missing_files":0}. Counts only, never file names.
+
+**POST /api/admin/categories** — JSON category_name (1–100), optional description. **POST /api/admin/courses** — JSON course_name (1–150), course_code (1–30, stored uppercase), optional description. 201 with the new record, 409 duplicate, 422 invalid.
+
 
 **GET /api/admin/overview** — authenticated admin only. 200 {"total_users":5,"total_materials":2}, both counts queried from PostgreSQL. 401 guest/invalid token, 403 student. There is no public admin-registration endpoint; local CLI setup is documented in README.
 
@@ -38,4 +57,4 @@ No matches => items [], total 0. Invalid query => 422. Three-second performance 
 
 Executed PostgreSQL tests cover registration persistence/hash/duplicate/validation, role restrictions, current-role recheck, invalid/expired/forged tokens, real counts, taxonomy, file validation/size/cleanup, FK/PK constraints, search, download and CORS. Browser tests exercise client integration, translation, network errors and the complete workflow. Exact-size counting and simulated DB failure use targeted mocks; no test labeled PostgreSQL substitutes SQLite.
 
-Future endpoints are not implemented: account recovery, email verification, logout/revocation, material editing/deletion, taxonomy administration, user management and moderation. No route should return a fake success for these. Formal approval of the prototype decisions remains pending.
+Future endpoints are not implemented: account recovery, email verification, logout/revocation, material editing. No route should return a fake success for these. Formal approval of the prototype decisions remains pending.

@@ -1,12 +1,12 @@
 # Study Materials Exchange
 
-Basics of Information Systems university project — Week 10 implementation, 2026-11-05.
+Basics of Information Systems university project. Updated 2026-11-06.
 
 Read [team conventions](docs/TEAM_CONVENTIONS.md), [API contract](docs/API_CONTRACT.md), and [team status](docs/WEEK10_TEAM_STATUS.md) first.
 
 ## Current stage
 
-The existing React/Vite and FastAPI foundation now connects to PostgreSQL. Implemented: student registration, login, server role checks, admin counts, local PDF upload, listing/search, authenticated download, and core English/Russian UI. The complete browser workflow was exercised against a separate PostgreSQL test database. This is a local prototype, not a production release.
+The system works end to end on PostgreSQL: registration, login, role checks, PDF upload, search, authenticated download, an admin panel with user management, course and download reports, verified backups and full English/Russian UI. See [project status](docs/PROJECT_STATUS.md) for each item checked against the Task 9 guide, and what is not done.
 
 Historical work is preserved: Week 9 SQLite schema, ERD, sample data and seven tests are unchanged; the original health endpoint, shared router/client, shell and connection panel remain. Pre-feature versions of the four integration documents are in [history/week10-skeleton](docs/history/week10-skeleton). Earlier evidence remains in [VERIFICATION.md](docs/VERIFICATION.md) and [WEEK10_ANUAR_PROGRESS.md](docs/WEEK10_ANUAR_PROGRESS.md).
 
@@ -21,6 +21,24 @@ Historical work is preserved: Week 9 SQLite schema, ERD, sample data and seven t
 | Anuarbek Alibek | 24B031648 | Forms, styling and EN/RU labels |
 
 This implementation was prepared by Codex. No teammate's personal authorship, review or verification is claimed. Each student must review and test their area before presenting it.
+
+## macOS or Linux setup
+
+Requirements: Python 3.12+, Node 22.12+, PostgreSQL 17 and Google Chrome for browser tests.
+
+~~~bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r backend/requirements.txt
+cp frontend/.env.example frontend/.env
+(cd frontend && npm ci)
+.venv/bin/python scripts/local_postgres.py start
+.venv/bin/python -m alembic upgrade head
+.venv/bin/python -m backend.app.db.seed
+.venv/bin/python -m backend.app.db.seed --admin   # optional demo admin, asks for email and password
+.venv/bin/python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+~~~
+
+In a second terminal run `cd frontend && npm run dev`, then open http://127.0.0.1:5173. Homebrew and standard Linux PostgreSQL locations are found automatically; otherwise set PG_BIN.
 
 ## Windows PowerShell setup
 
@@ -111,12 +129,16 @@ npm.cmd run test:browser
 
 Browser tests start their own backend on 8001 and Vite on 5173 and stop them afterwards; keep these ports free. That backend requires TEST_DATABASE_URL, seeds taxonomy and creates a test-only admin with a random run-specific password. Test upload bytes live in ignored .local-postgres/browser-uploads. The test-only launcher is not a development server. If TEST_DATABASE_URL is missing, Python PostgreSQL tests are explicitly skipped; browser tests fail instead of silently using SQLite.
 
-Results on 2026-11-05: 29 Python tests passed (7 historical SQLite, 3 health, 19 PostgreSQL/feature tests), 2 client tests passed, 7 Edge browser tests passed, frontend production build passed, migration drift check passed, dependency consistency passed. Two feature tests deliberately simulate a database failure or bypass PDF parsing to isolate exact byte counting; see [test report](docs/week10/TEST_REPORT.md). Windows sandbox process/temp-file restrictions required approved execution permissions during verification.
+Latest results are in [project status](docs/PROJECT_STATUS.md). Browser tests use Edge on Windows and Chrome elsewhere; set PLAYWRIGHT_CHANNEL to override.
+
+## Backups
+
+`scripts/backup.py` backs up the database and files, checks them and proves they restore. See [backup and restore](docs/BACKUP_RESTORE.md).
 
 ## Prototype decisions and remaining work
 
 Week 10 proposed decisions implemented consistently: PDF-only uploads; required course; authenticated downloads; HS256 tokens valid 60 minutes; tokens only in React memory (refresh logs out); lowercase trimmed emails; 12–128-character passwords. Public registration always creates students. The backend checks roles on every protected request.
 
-Remaining: personal team reviews, formal decision approval, representative three-second search measurement, crash-orphan file reconciliation, backup/restore, rate limiting, malware scanning, broader accessibility testing, account recovery and production hardening. PDF structure validation is not malware detection. No guest download approval is claimed.
+Remaining work is listed in [project status](docs/PROJECT_STATUS.md).
 
 See [seven-minute demo](docs/WEEK10_DEMO_GUIDE.md), [team status and Week 11 tasks](docs/WEEK10_TEAM_STATUS.md), [five role reports](docs/week10), and [suggested commit groups](docs/week10/COMMIT_PLAN.md). No commit, push, PR or issue was created.

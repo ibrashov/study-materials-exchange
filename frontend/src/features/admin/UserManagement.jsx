@@ -24,7 +24,7 @@ export default function UserManagement({ token, currentUserId, t }) {
       <button type="submit">{t('admin.find')}</button>
     </form>
     {error && <p role="alert">{t(error)}</p>}
-    {data.items.length === 0 ? <p>{t('admin.nothing')}</p> : <div className="admin-table"><table aria-labelledby="admin-users">
+    {data.items.length === 0 ? <p>{t('admin.nothing')}</p> : <div className="admin-table" tabIndex={0}><table aria-labelledby="admin-users">
       <thead><tr><th scope="col">{t('admin.name')}</th><th scope="col">{t('email')}</th><th scope="col">{t('admin.role')}</th><th scope="col">{t('admin.status')}</th><th scope="col"><span className="visually-hidden">{t('admin.block')}</span></th></tr></thead>
       <tbody>{data.items.map(user => { const self = user.user_id === currentUserId; return <tr key={user.user_id}>
         <td>{user.full_name}</td><td>{user.email}</td>

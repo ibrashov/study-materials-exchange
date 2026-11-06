@@ -1,5 +1,5 @@
 # Module responsibility
 
-Arnur: AdminPage.jsx shows real counts, loading/errors/access denial. Backend require_admin is authoritative; hiding navigation is not authorization.
+Arnur owns admin features and role tests. AdminPage.jsx shows the overview, course and download reports and storage check. UserManagement.jsx lists users and changes roles and blocking. TaxonomyForms.jsx adds categories and courses.
 
-Implementation prepared by Codex; personal owner review pending.
+Hiding this page is not authorization: every route under /api/admin is checked on the server. Personal owner review is pending.

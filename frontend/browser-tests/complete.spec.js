@@ -206,6 +206,8 @@ test('materials and admin pages fit a phone screen', async ({ page }) => {
   await logInAdmin(page);
   await expect(page.getByRole('heading', { name: 'Materials per course' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const row = page.getByRole('row').filter({ hasText: 'browser-admin@example.com' });
+  expect((await row.boundingBox()).height).toBeLessThan(90);
   await page.screenshot({ path: 'test-results/admin-mobile.png', fullPage: true });
   await page.getByRole('button', { name: 'Materials', exact: true }).click();
   await expect(page.getByLabel('Search', { exact: true })).toBeVisible();

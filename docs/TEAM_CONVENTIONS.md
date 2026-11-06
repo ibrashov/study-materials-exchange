@@ -39,11 +39,11 @@ These are reasonable implementation choices authorized for this prototype, **not
 
 ## Storage and configuration
 
-Uploads use generated UUID filenames in UPLOADS_DIR (default repository/uploads). Save bounded chunks to .part, parse PDF, rename, flush metadata, then commit. Application failures roll back and remove files. Abrupt process termination between file rename and commit can still leave an orphan; reconciliation is Week 11 work. Do not place uploads in a static public directory. Download paths must remain directly under the resolved upload directory.
+Uploads use generated UUID filenames in UPLOADS_DIR (default repository/uploads). Save bounded chunks to .part, parse PDF, rename, flush metadata, then commit. Application failures roll back and remove files. Abrupt process termination between file rename and commit can still leave an orphan; scripts/reconcile_storage.py and the admin panel report these. Do not place uploads in a static public directory. Download paths must remain directly under the resolved upload directory.
 
 DATABASE_URL uses postgresql+psycopg. Engine creation is lazy; no database connection is made at app import. AUTH_SECRET is required for login/protected endpoints. TEST_DATABASE_URL must be a distinct disposable database ending in _test. Test fixtures must be labeled and never presented as real student registrations.
 
-CORS allows explicit localhost/127.0.0.1:5173 origins, GET/POST and Content-Type/Authorization; credentials mode is false. Add preview origins explicitly when needed. .env, .local-postgres, uploads, caches and build output are ignored. Safe .env.example is tracked.
+CORS allows explicit localhost/127.0.0.1:5173 origins, GET/POST/PATCH/DELETE and Content-Type/Authorization; credentials mode is false. Add preview origins explicitly when needed. .env, .local-postgres, uploads, caches and build output are ignored. Safe .env.example is tracked.
 
 ## Working together
 

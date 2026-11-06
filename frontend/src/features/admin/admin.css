@@ -3,8 +3,9 @@
 .admin-help { color: #586b80; font-size: .9rem; margin: 0 0 12px; }
 .admin-flag { color: #983b2b; font-weight: 500; }
 .admin-table { overflow-x: auto; max-width: 100%; }
-.admin-table table { border-collapse: collapse; width: 100%; font-size: .95rem; }
-.admin-table th, .admin-table td { padding: 8px 12px 8px 0; text-align: left; border-bottom: 1px solid #dce2eb; overflow-wrap: anywhere; }
+.admin-table table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: .95rem; }
+.admin-table th, .admin-table td { padding: 8px 12px 8px 0; text-align: left; border-bottom: 1px solid #dce2eb; }
+.admin-table table[aria-labelledby=admin-users] { min-width: 760px; }
 .admin-table th { font-weight: 600; color: #23425e; white-space: nowrap; }
 .admin-table select { width: auto; padding: 5px; }
 .admin-inline-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; max-width: 520px; margin-bottom: 12px; }
