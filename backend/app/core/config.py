@@ -15,5 +15,9 @@ class Settings(BaseSettings):
     uploads_dir: Path = ROOT / 'uploads'
     backups_dir: Path = ROOT / 'backups'
     backup_keep: int = Field(default=7, ge=1, le=365)
+    storage_backend: str = 'local'
+    supabase_url: str = ''
+    supabase_service_role_key: str = ''
+    supabase_bucket: str = 'materials'
 
 settings = Settings()

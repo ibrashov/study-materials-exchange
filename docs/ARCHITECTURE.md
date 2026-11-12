@@ -1,5 +1,7 @@
 # Architecture — Week 10 connected prototype
 
+Week 11 adds a Render static frontend and FastAPI service, connected to shared Supabase PostgreSQL and a private Supabase Storage bucket. Local filesystem storage remains available for development. See [deployment](DEPLOYMENT.md) and [verification](WEEK11_ANUAR_SERVER.md).
+
 Updated 2026-11-05. The original React/Vite shell, central client/router, health panel and error envelope are extended. Earlier architecture is preserved in history/week10-skeleton/ARCHITECTURE.md; Week 9 SQLite remains an independent historical test fixture.
 
 ~~~mermaid

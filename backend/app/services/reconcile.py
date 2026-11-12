@@ -1,10 +1,13 @@
 """Compares stored files with material rows. A crash can leave the two out of step."""
 import time
+from fastapi import HTTPException
 from sqlalchemy import select
 from ..core.config import settings
 from ..models.entities import Material
 
 def scan(db):
+    if settings.storage_backend != 'local':
+        raise HTTPException(503, 'Storage reconciliation is available only for local files')
     directory = settings.uploads_dir.resolve()
     on_disk = {path.name for path in directory.iterdir() if path.is_file()} if directory.is_dir() else set()
     recorded = set(db.scalars(select(Material.file_path)))

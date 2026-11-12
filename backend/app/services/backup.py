@@ -75,6 +75,9 @@ def rotate(destination, keep):
 
 def create_backup(url, uploads_dir, destination, keep=7):
     """Dumps a consistent snapshot and archives files. An incomplete backup is never left behind."""
+    from ..core.config import settings
+    if settings.storage_backend != 'local':
+        raise BackupError('Local backup does not include cloud objects; back up the database and bucket separately')
     if keep < 1:
         raise BackupError('keep must be at least 1')
     destination = Path(destination)
