@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     uploads_dir: Path = ROOT / 'uploads'
     backups_dir: Path = ROOT / 'backups'
     backup_keep: int = Field(default=7, ge=1, le=365)
+    # Week 11: request limits and two-factor policy
+    rate_limit_enabled: bool = True
+    trust_proxy_headers: bool = False
+    require_admin_2fa: bool = False
     storage_backend: str = 'local'
     supabase_url: str = ''
     supabase_service_role_key: str = ''

@@ -6,11 +6,27 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
 from .api.router import router
 from .core.config import settings
+from .services.ratelimit import limiter, match_rule
 
 app = FastAPI(title='Study Materials Exchange', version='0.2.0')
+
+
+@app.middleware('http')
+async def rate_limit(request: Request, call_next):
+    # Registered before CORS so that 429 responses still carry CORS headers.
+    if settings.rate_limit_enabled and request.method != 'OPTIONS' and request.url.path.startswith('/api/'):
+        client = request.client.host if request.client else 'unknown'
+        if settings.trust_proxy_headers and request.headers.get('x-forwarded-for'):
+            client = request.headers['x-forwarded-for'].split(',')[0].strip()
+        allowed, retry_after = limiter.check(client, match_rule(request.method, request.url.path))
+        if not allowed:
+            return JSONResponse(status_code=429, headers={'Retry-After': str(retry_after)}, content={'error': {
+                'code': 'http_429', 'message': f'Too many requests. Try again in {retry_after} seconds.'}})
+    return await call_next(request)
+
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins,
                    allow_credentials=False, allow_methods=['GET', 'POST', 'PATCH', 'DELETE'],
-                   allow_headers=['Content-Type', 'Authorization'])
+                   allow_headers=['Content-Type', 'Authorization'], expose_headers=['Retry-After'])
 app.include_router(router)
 
 @app.exception_handler(HTTPException)

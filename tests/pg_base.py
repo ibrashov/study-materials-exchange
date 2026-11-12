@@ -15,6 +15,7 @@ from backend.app.db.session import engine_for, get_db
 from backend.app.main import app
 from backend.app.models.entities import Category, Course, User
 from backend.app.services.auth import create_token, hasher
+from backend.app.services.ratelimit import limiter
 
 PASSWORD = 'Test-password-123!'
 
@@ -47,6 +48,7 @@ class PostgresCase(unittest.TestCase):
         cls.password_hash = hasher.hash(PASSWORD)
 
     def setUp(self):
+        limiter.reset()
         with self.engine.begin() as connection:
             connection.execute(text('TRUNCATE materials, users, categories, courses RESTART IDENTITY CASCADE'))
         self.temp = tempfile.TemporaryDirectory()

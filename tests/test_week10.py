@@ -19,6 +19,7 @@ from backend.app.db.session import engine_for, get_db
 from backend.app.main import app
 from backend.app.models.entities import User, Material, Category, Course
 from backend.app.services.auth import hasher, create_token
+from backend.app.services.ratelimit import limiter
 from backend.app.services.storage import save_pdf
 from starlette.datastructures import UploadFile
 
@@ -52,6 +53,7 @@ class PostgreSQLTests(unittest.TestCase):
         cls.password_hash = hasher.hash(PASSWORD)
 
     def setUp(self):
+        limiter.reset()
         with self.engine.begin() as connection:
             connection.execute(text('TRUNCATE materials, users, categories, courses RESTART IDENTITY CASCADE'))
         self.temp = tempfile.TemporaryDirectory()
@@ -95,7 +97,7 @@ class PostgreSQLTests(unittest.TestCase):
     def test_registration_persists_and_hashes(self):
         response = self.register(email=' Student@EXAMPLE.com ')
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(set(response.json()), {'user_id', 'full_name', 'email', 'role'})
+        self.assertEqual(set(response.json()), {'user_id', 'full_name', 'email', 'role', 'totp_enabled'})
         self.assertEqual(response.json()['email'], 'student@example.com')
         self.assertEqual(response.json()['full_name'], 'Example Student')
         with Session(self.engine) as db:
