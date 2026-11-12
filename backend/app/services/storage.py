@@ -22,11 +22,13 @@ def cloud_request(method, name, **kwargs):
             'apikey': settings.supabase_service_role_key,
             'Content-Type': 'application/pdf',
         }, timeout=90, **kwargs)
-    except httpx.RequestError:
+    except httpx.RequestError as exc:
+        logger.warning('Cloud storage connection failed: %s', type(exc).__name__)
         raise HTTPException(503, 'Storage unavailable') from None
     if response.status_code == 404:
         raise HTTPException(404, 'File not found')
     if not response.is_success:
+        logger.warning('Cloud storage returned HTTP %s for %s', response.status_code, method)
         raise HTTPException(503, 'Storage unavailable')
     return response
 
