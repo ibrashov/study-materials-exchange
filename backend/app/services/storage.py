@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 def cloud_request(method, name, **kwargs):
     if settings.storage_backend != 'supabase' or not settings.supabase_url.startswith('https://') or not settings.supabase_service_role_key:
+        logger.warning('Cloud configuration: backend=%s url_valid=%s key_present=%s',
+                       settings.storage_backend, settings.supabase_url.startswith('https://'), bool(settings.supabase_service_role_key))
         raise HTTPException(503, 'Cloud storage is not configured')
     if len(name) != 36 or not name.endswith('.pdf') or any(c not in '0123456789abcdef' for c in name[:-4]):
         raise HTTPException(404, 'File not found')
