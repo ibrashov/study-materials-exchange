@@ -9,7 +9,7 @@ export default function BackendStatus({ t }) {
     const controller = new AbortController();
     let active = true;
     setState({ status: 'loading' });
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 90000);
     getHealth({ signal: controller.signal })
       .then(data => { if (active) setState({ status: 'connected', data }); })
       .catch(error => { if (active) setState({ status: 'error', error }); })

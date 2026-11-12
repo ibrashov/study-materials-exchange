@@ -1,0 +1,5 @@
+# Week 11 — server and integration
+
+Previously each installation used its own PostgreSQL and local PDF files. This change prepares Render deployment, shared PostgreSQL configuration and a private Supabase Storage option while preserving the existing local option, authentication and UI. FastAPI stores generated object names in the existing material rows and serves downloads only through the authenticated endpoint. The frontend receives its API URL at build time; FastAPI receives database and storage secrets as server environment variables. Existing database, authentication, file-management and frontend features remain the work of their respective teammates.
+
+Current status: implementation and cloud provisioning are incomplete and must be reviewed and verified before release. No public frontend or backend URL and no real multi-device or restart test has been verified. See `DEPLOYMENT.md` and `SECOND_DEVICE_TEST.md` for setup and remaining checks. Local storage backup/reconciliation does not cover cloud files.

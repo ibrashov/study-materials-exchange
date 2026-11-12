@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, Query, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from ...db.session import get_db
 from ...models.entities import Category, Course, Material, User
 from ...schemas.materials import MaterialList, MaterialResponse, CategoryList, CourseList
-from ...services.storage import remove_stored, save_pdf, stored_path
+from ...services.storage import download_stored, remove_stored, save_pdf
 from ..dependencies import current_user, require_student
 
 router = APIRouter(tags=['materials'])
@@ -55,7 +55,7 @@ def upload(title: str = Form(..., min_length=1, max_length=200), category_id: in
         return response
     except BaseException as exc:
         db.rollback()
-        stored_path(name).unlink(missing_ok=True)
+        remove_stored(name)
         if isinstance(exc, IntegrityError):
             raise HTTPException(422, 'Invalid material references') from None
         raise
@@ -65,14 +65,15 @@ def download(material_id: int = Path(..., gt=0), user: User = Depends(current_us
     material = db.get(Material, material_id)
     if material is None:
         raise HTTPException(404, 'Material not found')
-    path = stored_path(material.file_path)
-    if not path.is_file():
-        raise HTTPException(404, 'File not found')
+    data = download_stored(material.file_path)
     db.execute(update(Material).where(Material.material_id == material_id)
                .values(download_count=Material.download_count + 1))
     db.commit()
-    return FileResponse(path, media_type='application/pdf', filename=f'material-{material_id}.pdf',
-                        headers={'X-Content-Type-Options': 'nosniff'})
+    headers = {'X-Content-Type-Options': 'nosniff'}
+    if isinstance(data, bytes):
+        headers['Content-Disposition'] = f'attachment; filename="material-{material_id}.pdf"'
+        return Response(data, media_type='application/pdf', headers=headers)
+    return FileResponse(data, media_type='application/pdf', filename=f'material-{material_id}.pdf', headers=headers)
 
 @router.delete('/materials/{material_id}', status_code=204)
 def delete_material(material_id: int = Path(..., gt=0), user: User = Depends(current_user), db: Session = Depends(get_db)):
