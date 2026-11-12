@@ -1,3 +1,4 @@
+import { kk } from './kk.js';
 export const messages = {
   en: {
     home: 'Home', materials: 'Materials', registration: 'Registration', login: 'Login', upload: 'Upload', admin: 'Admin', logout: 'Log out',
@@ -49,6 +50,16 @@ export const messages = {
     'admin.storage': 'File storage', 'admin.storageOk': 'Storage is consistent', 'admin.storageBad': 'Needs attention',
     'admin.orphans': 'Files without a record', 'admin.partial': 'Incomplete uploads', 'admin.missing': 'Records without a file',
     'admin.storageHelp': 'Run scripts/reconcile_storage.py on the server to review these.',
+    rateLimited: 'Too many attempts. Wait a minute and try again.',
+    otpRequired: 'Enter the 6-digit code from your authenticator app.', otpInvalid: 'The code is incorrect or expired.',
+    security: 'Security', twoFactor: 'Two-factor authentication', otpCode: 'Authentication code', otpHint: 'Enter the 6-digit code from your authenticator app.',
+    twoFactorOff: 'Two-factor authentication is off. Add a second step to sign in.', twoFactorOn: 'Two-factor authentication is on.',
+    enableTwoFactor: 'Set up two-factor authentication', confirmEnable: 'Confirm and turn on', disableTwoFactor: 'Turn off two-factor authentication',
+    setupSteps: 'Add this key to an authenticator app (Google Authenticator, Authy, 1Password), then enter the 6-digit code it shows.',
+    secretKey: 'Secret key', copy: 'Copy', copied: 'Copied', twoFactorEnabledMsg: 'Two-factor authentication is now on.', twoFactorDisabledMsg: 'Two-factor authentication is off.',
+    cancel: 'Cancel', showPassword: 'Show password',
+    'home.title': 'Find the notes you missed', 'home.intro': 'Search lecture notes, slides and assignments shared by students. Sign in to download.',
+    'home.placeholder': 'Course, topic or title', 'home.browse': 'Browse by category', 'home.share': 'Share your own notes',
   },
   ru: {
     home: 'Главная', materials: 'Материалы', registration: 'Регистрация', login: 'Вход', upload: 'Загрузка', admin: 'Администрирование', logout: 'Выйти',
@@ -100,7 +111,18 @@ export const messages = {
     'admin.storage': 'Файловое хранилище', 'admin.storageOk': 'Хранилище в порядке', 'admin.storageBad': 'Нужна проверка',
     'admin.orphans': 'Файлы без записи', 'admin.partial': 'Незавершённые загрузки', 'admin.missing': 'Записи без файла',
     'admin.storageHelp': 'Запустите на сервере scripts/reconcile_storage.py, чтобы разобраться с ними.',
+    rateLimited: 'Слишком много попыток. Подождите минуту и повторите.',
+    otpRequired: 'Введите 6-значный код из приложения-аутентификатора.', otpInvalid: 'Код неверный или устарел.',
+    security: 'Безопасность', twoFactor: 'Двухфакторная аутентификация', otpCode: 'Код подтверждения', otpHint: 'Введите 6-значный код из приложения-аутентификатора.',
+    twoFactorOff: 'Двухфакторная аутентификация выключена. Добавьте второй шаг при входе.', twoFactorOn: 'Двухфакторная аутентификация включена.',
+    enableTwoFactor: 'Настроить двухфакторную аутентификацию', confirmEnable: 'Подтвердить и включить', disableTwoFactor: 'Выключить двухфакторную аутентификацию',
+    setupSteps: 'Добавьте этот ключ в приложение-аутентификатор (Google Authenticator, Authy, 1Password) и введите 6-значный код из него.',
+    secretKey: 'Секретный ключ', copy: 'Копировать', copied: 'Скопировано', twoFactorEnabledMsg: 'Двухфакторная аутентификация включена.', twoFactorDisabledMsg: 'Двухфакторная аутентификация выключена.',
+    cancel: 'Отмена', showPassword: 'Показать пароль',
+    'home.title': 'Найдите конспекты, которые вы пропустили', 'home.intro': 'Ищите лекции, презентации и задания, которыми поделились студенты. Для скачивания нужно войти.',
+    'home.placeholder': 'Курс, тема или название', 'home.browse': 'Категории', 'home.share': 'Поделиться своими конспектами',
   },
+  kk,
 };
 export const pickLanguage = language => (Object.hasOwn(messages, language ?? '') ? language : 'en');
 
@@ -114,7 +136,10 @@ export function createTranslator(language) {
 }
 
 export function errorKey(error, context = '') {
+  if (error.status === 429) return 'rateLimited';
   if (error.status === 409) return { taxonomy: 'duplicateItem', user: 'selfChange' }[context] || 'duplicate';
+  if (error.status === 401 && error.message === 'otp_required') return 'otpRequired';
+  if (error.status === 401 && error.message === 'otp_invalid') return 'otpInvalid';
   if (error.status === 401) return context === 'login' ? 'invalidLogin' : 'loginRequired';
   if (error.status === 403) return context === 'login' ? 'accountDisabled' : 'denied';
   if (error.status === 422) return 'invalid';

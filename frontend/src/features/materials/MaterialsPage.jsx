@@ -10,9 +10,9 @@ const PAGE_SIZE = 20;
 const NO_FILTERS = { q: '', categoryId: '', courseId: '' };
 const isFiltered = filters => Boolean(filters.q.trim() || filters.categoryId || filters.courseId);
 
-export default function MaterialsPage({ session, t }) {
-  const [draft, setDraft] = useState(NO_FILTERS);
-  const [search, setSearch] = useState({ filters: NO_FILTERS, offset: 0 });
+export default function MaterialsPage({ session, t, preset = NO_FILTERS }) {
+  const [draft, setDraft] = useState(preset);
+  const [search, setSearch] = useState({ filters: preset, offset: 0 });
   const categories = useRequest(signal => getCategories({ signal }), []);
   const courses = useRequest(signal => getCourses({ signal }), []);
   const materials = useRequest(
@@ -43,7 +43,6 @@ export default function MaterialsPage({ session, t }) {
   const results = filtersSettled ? materials.data : undefined;
 
   return <section aria-labelledby="materials-title">
-    <p className="eyebrow">{t('materials.eyebrow')}</p>
     <h1 id="materials-title">{t('materials.title')}</h1>
     <p className="intro">{t('materials.intro')}</p>
     <MaterialsSearchForm t={t} draft={draft} onChange={setDraft} categories={categories} courses={courses}

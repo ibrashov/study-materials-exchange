@@ -18,7 +18,7 @@ export default function MaterialList({ items, categoryNames, courseNames, busy, 
     run(item.material_id, async () => { await deleteMaterial(item.material_id, session.token); onDeleted(); });
   }
   return <>{error && <p role="alert">{t(error)}</p>}<ul className="materials-list" aria-busy={busy}>
-    {items.map(item => <li key={item.material_id} className="materials-item">
+    {items.map(item => <li key={item.material_id} className="materials-item" data-tone={item.category_id % 4}>
       <p className="materials-tag">{labelFor(categoryNames, item.category_id, 'materials.categoryFallback', t)}</p>
       <h2>{item.title}</h2>
       <p>{labelFor(courseNames, item.course_id, 'materials.courseFallback', t)}</p>

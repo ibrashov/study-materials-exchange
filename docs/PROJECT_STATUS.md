@@ -57,6 +57,10 @@ PDF-only uploads, required course, downloads only for signed-in users, 60-minute
 - Each student's personal review and contribution statement.
 - A run on Windows and Edge. The new tests have not run there.
 - Deployment to a real server, a scheduled backup job and backup storage off the server.
-- Rate limiting, malware scanning, password reset, email verification and token revocation on logout.
+- Malware scanning, password reset, email verification and token revocation on logout.
 - Load testing, a full accessibility audit and parsing a real 50 MB PDF.
-- Translating database content and Kazakh.
+- Translating database content.
+
+## Update 2026-11-13 (Week 11)
+
+Added: request limits (429), TOTP two-factor authentication, search indexes, Kazakh interface, redesigned UI and 20 UX/UI tests. See [WEEK11_TEAM_STATUS.md](WEEK11_TEAM_STATUS.md).

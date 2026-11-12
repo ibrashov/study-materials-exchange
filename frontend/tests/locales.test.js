@@ -46,3 +46,25 @@ test('errorKey explains conflicts by context', () => {
   assert.equal(errorKey({ status: 409 }, 'taxonomy'), 'duplicateItem');
   assert.equal(errorKey({ status: 409 }, 'user'), 'selfChange');
 });
+
+// Week 11: Kazakh
+test('Kazakh defines exactly the same keys as English, with the same kind of value', () => {
+  const { en, kk } = messages;
+  assert.deepEqual(Object.keys(kk).sort(), Object.keys(en).sort());
+  assert.deepEqual(Object.keys(en).filter(key => typeof en[key] !== typeof kk[key]), []);
+});
+
+test('Kazakh text is really translated and dynamic text is filled in', () => {
+  const { kk } = messages;
+  const untranslated = Object.keys(kk).filter(key => key !== 'locale')
+    .filter(key => !/[А-Яа-яӘәҒғҚқҢңӨөҰұҮүҺһІі]/.test(typeof kk[key] === 'function' ? kk[key](sample) : kk[key]));
+  assert.deepEqual(untranslated, []);
+  assert.equal(createTranslator('kk')('materials.summary', { from: 1, to: 2, total: 3 }), '3 материал ішінен 1–2 көрсетілді');
+  assert.equal(pickLanguage('kk'), 'kk');
+});
+
+test('a rate-limit response and two-factor codes have their own messages', () => {
+  assert.equal(errorKey({ status: 429 }), 'rateLimited');
+  assert.equal(errorKey({ status: 401, message: 'otp_required' }, 'login'), 'otpRequired');
+  assert.equal(errorKey({ status: 401, message: 'otp_invalid' }, 'login'), 'otpInvalid');
+});

@@ -6,6 +6,10 @@ Basics of Information Systems university project. Updated 2026-11-06.
 
 Read [team conventions](docs/TEAM_CONVENTIONS.md), [API contract](docs/API_CONTRACT.md), and [team status](docs/WEEK10_TEAM_STATUS.md) first.
 
+## Week 11 additions (2026-11-13)
+
+Request limits (429), TOTP two-factor authentication, search indexes, Kazakh, redesigned UI, 20 UX/UI tests. See [Week 11 status](docs/WEEK11_TEAM_STATUS.md). Migrations are now `0001`–`0004` (`alembic upgrade head`).
+
 ## Current stage
 
 The system works end to end on PostgreSQL: registration, login, role checks, PDF upload, search, authenticated download, an admin panel with user management, course and download reports, verified backups and full English/Russian UI. See [project status](docs/PROJECT_STATUS.md) for each item checked against the Task 9 guide, and what is not done.
