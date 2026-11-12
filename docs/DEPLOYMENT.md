@@ -1,6 +1,6 @@
-# Week 11 deployment (pending verification)
+# Week 11 deployment
 
-The proposed setup is a Render Free web service and static site, Supabase PostgreSQL and a private Storage bucket named `materials`. Do not enable public access to the bucket or expose the service-role key in Vite. The supplied `render.yaml` describes the two Render services. Provisioning has not yet been verified end to end.
+The deployed setup is a Render Free web service and static site, Supabase PostgreSQL and a private Storage bucket named `materials`. Do not enable public access to the bucket or expose the service-role key in Vite. The supplied `render.yaml` describes the two Render services. See `WEEK11_ANUAR_SERVER.md` for verified results and limitations.
 
 1. In Supabase create a private bucket `materials` allowing `application/pdf` and ensure the global upload limit supports the application's 50 MiB limit. Set a lower limit if necessary, consistently with application validation.
 2. Obtain the session-pooler PostgreSQL URL (IPv4) with TLS and change its scheme to `postgresql+psycopg://`; URL-encode password characters. Configure it as `DATABASE_URL` in Render only. Keep test databases separate. Never put secrets in Git.

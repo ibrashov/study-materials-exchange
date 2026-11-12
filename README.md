@@ -1,5 +1,7 @@
 # Study Materials Exchange
 
+Week 11 cloud deployment: [website](https://study-materials-web.onrender.com/), [API health](https://study-materials-api-v15q.onrender.com/api/health), [deployment guide](docs/DEPLOYMENT.md) and [verification report](docs/WEEK11_ANUAR_SERVER.md). The free backend may take a minute to wake after inactivity.
+
 Basics of Information Systems university project. Updated 2026-11-06.
 
 Read [team conventions](docs/TEAM_CONVENTIONS.md), [API contract](docs/API_CONTRACT.md), and [team status](docs/WEEK10_TEAM_STATUS.md) first.
