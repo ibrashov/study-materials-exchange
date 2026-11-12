@@ -30,7 +30,7 @@ class CreateAndVerify(BackupCase):
         self.assertEqual(manifest['tables']['materials'], 1)
         self.assertEqual(manifest['tables']['users'], 3)
         self.assertEqual(manifest['files'], 1)
-        self.assertEqual(manifest['alembic_revision'], '0002_admin_reports')
+        self.assertEqual(manifest['alembic_revision'], '0004_two_factor')  # current head
 
     def test_manifest_contains_no_credentials(self):
         path = self.create()

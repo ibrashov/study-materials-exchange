@@ -23,16 +23,25 @@ def courses(db: Session = Depends(get_db)):
 def materials(q: str = Query('', max_length=200), category_id: int | None = Query(None, gt=0),
               course_id: int | None = Query(None, gt=0), limit: int = Query(20, ge=1, le=100),
               offset: int = Query(0, ge=0), db: Session = Depends(get_db)):
-    query = select(Material).join(Course).join(Category)
-    if q.strip():
-        query = query.where(or_(Material.title.icontains(q.strip(), autoescape=True),
-                               Course.course_name.icontains(q.strip(), autoescape=True),
-                               Category.category_name.icontains(q.strip(), autoescape=True)))
+    # Week 11 (Daryn): no joins; text search uses trigram indexes on each table, then ids.
+    query = select(Material)
+    term = q.strip()
+    if term:
+        # Resolve the (tiny) course/category tables first, so the big table sees plain id lists and
+        # PostgreSQL can combine the trigram title index with the course/category indexes (BitmapOr).
+        course_ids = db.scalars(select(Course.course_id).where(Course.course_name.icontains(term, autoescape=True))).all()
+        category_ids = db.scalars(select(Category.category_id).where(Category.category_name.icontains(term, autoescape=True))).all()
+        conditions = [Material.title.icontains(term, autoescape=True)]
+        if course_ids:
+            conditions.append(Material.course_id.in_(course_ids))
+        if category_ids:
+            conditions.append(Material.category_id.in_(category_ids))
+        query = query.where(or_(*conditions))
     if category_id:
         query = query.where(Material.category_id == category_id)
     if course_id:
         query = query.where(Material.course_id == course_id)
-    total = db.scalar(select(func.count()).select_from(query.subquery()))
+    total = db.scalar(select(func.count()).select_from(query.order_by(None).subquery()))
     items = db.scalars(query.order_by(Material.material_id.desc()).limit(limit).offset(offset)).all()
     return {'items': items, 'total': total, 'limit': limit, 'offset': offset}
 
