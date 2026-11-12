@@ -34,6 +34,10 @@ export async function request(endpoint, { token, body, signal, method = 'GET', b
 export const register = body => request('/auth/register', { method: 'POST', body });
 export const login = body => request('/auth/login', { method: 'POST', body });
 export const getMe = token => request('/auth/me', { token });
+// Week 11: two-factor authentication (TOTP)
+export const twoFactorSetup = token => request('/auth/2fa/setup', { method: 'POST', token });
+export const twoFactorEnable = (code, token) => request('/auth/2fa/enable', { method: 'POST', token, body: { code } });
+export const twoFactorDisable = (body, token) => request('/auth/2fa/disable', { method: 'POST', token, body });
 function unexpectedResponse(status) {
   return new ApiError(status, 'invalid_response', 'Unexpected backend response');
 }

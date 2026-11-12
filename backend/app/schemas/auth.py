@@ -5,6 +5,7 @@ class LoginRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     email: EmailStr = Field(max_length=254)
     password: str = Field(min_length=1, max_length=128)
+    otp: str | None = Field(default=None, max_length=12)
 
     @field_validator('email', mode='before')
     @classmethod
@@ -26,7 +27,22 @@ class UserResponse(BaseModel):
     full_name: str
     email: str
     role: Literal['student', 'admin']
+    totp_enabled: bool = False
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: Literal['bearer'] = 'bearer'
+
+class TwoFactorSetup(BaseModel):
+    secret: str
+    otpauth_uri: str
+
+class TwoFactorCode(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    code: str = Field(min_length=6, max_length=12)
+
+class TwoFactorDisable(TwoFactorCode):
+    password: str = Field(min_length=1, max_length=128)
+
+class TwoFactorStatus(BaseModel):
+    enabled: bool
