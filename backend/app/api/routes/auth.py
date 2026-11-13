@@ -6,11 +6,12 @@ from ...db.session import get_db
 from ...models.entities import User
 from ...schemas.auth import LoginRequest, RegisterRequest, UserResponse, TokenResponse
 from ...services.auth import hasher, verify_password, create_token, DUMMY_HASH
+from ...services.rate_limit import limit_login, limit_register
 from ..dependencies import current_user
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
-@router.post('/register', response_model=UserResponse, status_code=201)
+@router.post('/register', response_model=UserResponse, status_code=201, dependencies=[Depends(limit_register)])
 def register(body: RegisterRequest, db: Session = Depends(get_db)):
     user = User(full_name=body.full_name, email=str(body.email), password_hash=hasher.hash(body.password), role='student')
     db.add(user)
@@ -24,7 +25,7 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(user)
     return user
 
-@router.post('/login', response_model=TokenResponse)
+@router.post('/login', response_model=TokenResponse, dependencies=[Depends(limit_login)])
 def login(body: LoginRequest, db: Session = Depends(get_db)):
     user = db.scalar(select(User).where(User.email == str(body.email)))
     valid = verify_password(body.password, user.password_hash if user else DUMMY_HASH)

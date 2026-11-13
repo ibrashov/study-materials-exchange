@@ -15,6 +15,7 @@ from backend.app.db.session import engine_for, get_db
 from backend.app.main import app
 from backend.app.models.entities import Category, Course, User
 from backend.app.services.auth import create_token, hasher
+from backend.app.services.rate_limit import reset_all
 
 PASSWORD = 'Test-password-123!'
 
@@ -57,6 +58,7 @@ class PostgresCase(unittest.TestCase):
             with Session(self.engine) as db:
                 yield db
         app.dependency_overrides[get_db] = test_db
+        reset_all()
         self.client = TestClient(app)
         with Session(self.engine) as db:
             db.add_all([Category(category_name='Lecture Notes'), Course(course_code='PROG101', course_name='Programming'),

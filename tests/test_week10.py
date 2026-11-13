@@ -19,6 +19,7 @@ from backend.app.db.session import engine_for, get_db
 from backend.app.main import app
 from backend.app.models.entities import User, Material, Category, Course
 from backend.app.services.auth import hasher, create_token
+from backend.app.services.rate_limit import reset_all
 from backend.app.services.storage import save_pdf
 from starlette.datastructures import UploadFile
 
@@ -64,6 +65,7 @@ class PostgreSQLTests(unittest.TestCase):
                 yield db
         app.dependency_overrides[get_db] = test_db
         self.client = TestClient(app)
+        reset_all()
         with Session(self.engine) as db:
             db.add_all([Category(category_name='Lecture Notes'), Course(course_code='PROG101', course_name='Programming'),
                         User(full_name='Test Admin', email='admin@example.com', password_hash=self.password_hash, role='admin')])

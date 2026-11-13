@@ -14,6 +14,7 @@ url = settings.test_database_url
 if not url or not (make_url(url).database or '').endswith('_test') or make_url(url) == make_url(settings.database_url):
     raise RuntimeError('A separate TEST_DATABASE_URL ending in _test is required')
 settings.database_url = url
+settings.rate_limit_enabled = False  # browser tests register and sign in many times from one address
 settings.uploads_dir = ROOT / '.local-postgres' / 'browser-uploads'
 os.chdir(ROOT)
 command.upgrade(Config('alembic.ini'), 'head')
