@@ -161,8 +161,11 @@ Verified locally via `ml_moderation/scripts/measure_render_compat.py` (`ml_moder
   - After warm inference: **107.32 MB** (**404.68 MB headroom** below Render Free's 512 MB limit)
 - **Startup model load time:** **75.58 ms** (once per process; zero training at startup).
 - **Python 3.12.10 parity check:** Artifact trained on Python 3.14.3 loaded cleanly in Python 3.12.10 with zero `scipy`/`scikit-learn` installed and produced identical probabilities to 4 decimal places.
-- **Live Render status:** `https://study-materials-api-v15q.onrender.com/api/health` responded HTTP `200 {"status":"ok","service":"study-materials-backend"}` on 2026-11-19.
-- **Deployment blocker (by policy):** Per task rules ("Do not push or merge into the main branch without my permission"), the new branch `feature/ml-filename-moderation` has **not** been pushed or deployed to live Render yet. Remaining deployment steps are documented in `WEEK12_PROGRESS.md`.
+- **Live Render verification (2026-11-19 11:53 UTC, commit `de64821`):**
+  - `GET https://study-materials-api-v15q.onrender.com/api/health` → `200 {"status":"ok","service":"study-materials-backend"}`
+  - Authenticated `POST /api/materials` with `pppAAASSSS.pdf` → `422 {"error":{"code":"http_422","message":"Please choose an appropriate name for your study material."}}`
+  - Authenticated `POST /api/materials` with `қ0тақ_дәріс.pdf` → `422 {"error":{"code":"http_422","message":"Please choose an appropriate name for your study material."}}`
+  - Authenticated `POST /api/materials` with `Assignment_12.pdf` (`Assignment 12 Data Classification`) → `201` (`material_id=6`), immediately cleaned up via `DELETE /api/materials/6` → `204`.
 
 ---
 
@@ -171,7 +174,6 @@ Verified locally via `ml_moderation/scripts/measure_render_compat.py` (`ml_moder
 1. **Star-masked vowel substitutions inside long academic titles:** The 2 Challenge Set false negatives (`f*ck_this_course.pdf` → `fck this course`, `sh*t_exam.pdf` → `sht exam`) occurred when `*` replaced a vowel inside a short word surrounded by clean academic tokens.
 2. **Short ambiguous abbreviations:** Filenames like `Ass_12.pdf` (student abbreviation for "Assignment 12") cannot be unambiguously separated from the standalone word `ass` without extra context; currently blocked conservatively (`ambiguous_eval.csv`).
 3. **Novel slang / completely unseen root words:** On the strict unseen-root `test.csv` split (where 100% of test profanity stems are excluded from training), Model D achieved **79.33% F1** (82.77% obfuscated recall, 0.16% FPR). Unseen slang roots with zero shared n-grams require periodic vocabulary updates and retraining.
-4. **No live Render post-deploy check yet:** Awaits user approval to push `feature/ml-filename-moderation` and trigger Render redeploy.
 
 ---
 

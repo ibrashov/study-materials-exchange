@@ -32,11 +32,12 @@
 - **Render Runtime Footprint:** Model size **310.45 KB**, RSS delta **+5.12 MB**, warm inference **0.120 ms avg / 0.190 ms p95**, Python 3.12.10 verified.
 - **Automated Tests:** **99 / 99 passed in 34.563s** (87 existing backend/PostgreSQL/admin/backup/migration/week10/week11 tests unmodified + 12 new Week 12 unit and PostgreSQL integration tests in `tests/test_filename_moderation.py`). Static checks (`compileall`, `ruff`, `pip check`) passed with 0 errors.
 
-## Remaining Tasks & Actual Blockers
+## Remaining Tasks & Deployment Verification
 
-- **Git commit & push to `feature/ml-filename-moderation`:** Waiting for user review/approval before pushing or creating a PR to `main`.
-- **Live Render Deployment Verification:** Blocked only by authorization to push/deploy to Render. Exact remaining commands after approval:
-  1. `git add` & `git commit` on `feature/ml-filename-moderation`, then `git push -u origin feature/ml-filename-moderation`.
-  2. Open PR to `main` (or point Render `study-materials-api` temporarily to `feature/ml-filename-moderation`) and trigger deploy.
-  3. Verify `GET https://study-materials-api-v15q.onrender.com/api/health` returns `200`.
-  4. Verify authenticated `POST /api/materials` on Render rejects `pppAAASSSS.pdf` with HTTP `422` (`Please choose an appropriate name for your study material.`) and accepts `Assignment_12.pdf` with HTTP `201` (then delete the test material).
+- [x] **Git commit & push (2026-11-19):** Committed `de64821` and pushed to both `origin/feature/ml-filename-moderation` and `origin/main` after explicit user authorization.
+- [x] **Live Render Deployment Verification (2026-11-19 11:53 UTC):** Verified on `https://study-materials-api-v15q.onrender.com/api`:
+  - `GET /api/health` → `200 OK`
+  - `POST /api/materials` (`pppAAASSSS.pdf`) → `422` (`Please choose an appropriate name for your study material.`)
+  - `POST /api/materials` (`қ0тақ_дәріс.pdf`) → `422` (`Please choose an appropriate name for your study material.`)
+  - `POST /api/materials` (`Assignment_12.pdf`) → `201 Created`, followed by `DELETE /api/materials/6` → `204 No Content`.
+- **Blockers:** None. All Week 12 responsibilities for Ibrashov Anuar are complete and verified in production.
