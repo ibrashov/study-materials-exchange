@@ -1,0 +1,60 @@
+{
+  "python_version": "3.14.3",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "model_type": "hybrid_char_tfidf_logreg",
+  "model_version": "1.0.0",
+  "artifact_size_kb": 310.45,
+  "backend_import_ms": 2879.66,
+  "model_load_ms": 75.58,
+  "warm_inference_avg_ms": 0.1203,
+  "warm_inference_p95_ms": 0.1902,
+  "rss_start_mb": 16.43,
+  "rss_after_backend_mb": 102.13,
+  "rss_after_model_mb": 107.25,
+  "rss_after_infer_mb": 107.32,
+  "model_rss_delta_mb": 5.12,
+  "render_free_ram_limit_mb": 512,
+  "estimated_headroom_mb": 404.68,
+  "smoke_checks": {
+    "Assignment_12.pdf": {
+      "allowed": true,
+      "confidence": 0.0127
+    },
+    "Class_Notes.pdf": {
+      "allowed": true,
+      "confidence": 0.2263
+    },
+    "Қазақстан_тарихы.pdf": {
+      "allowed": true,
+      "confidence": 0.0474
+    },
+    "Лекция_математика.pdf": {
+      "allowed": true,
+      "confidence": 0.1025
+    },
+    "ASS.pdf": {
+      "allowed": false,
+      "confidence": 0.9981
+    },
+    "pppAAASSSS.pdf": {
+      "allowed": false,
+      "confidence": 0.9996
+    },
+    "A.S.S.pdf": {
+      "allowed": false,
+      "confidence": 0.9991
+    },
+    "@$$.pdf": {
+      "allowed": false,
+      "confidence": 0.9996
+    },
+    "A123SS.pdf": {
+      "allowed": false,
+      "confidence": 0.9998
+    },
+    "pASS.pdf": {
+      "allowed": true,
+      "confidence": 0.0932
+    }
+  }
+}

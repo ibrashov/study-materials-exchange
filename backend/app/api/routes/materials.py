@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from ...db.session import get_db
 from ...models.entities import Category, Course, Material, User
 from ...schemas.materials import MaterialList, MaterialResponse, CategoryList, CourseList
+from ...services.moderation import enforce_material_moderation
 from ...services.storage import download_stored, remove_stored, save_pdf
 from ..dependencies import current_user, require_student
 
@@ -52,6 +53,7 @@ def upload(title: str = Form(..., min_length=1, max_length=200), category_id: in
     title = title.strip()
     if not title or not db.get(Category, category_id) or not db.get(Course, course_id):
         raise HTTPException(422, 'Provide a title and existing category and course')
+    enforce_material_moderation(title=title, filename=file.filename)
     name, size = save_pdf(file)
     material = Material(title=title, uploader_id=user.user_id, category_id=category_id,
                         course_id=course_id, file_path=name, file_size_bytes=size)

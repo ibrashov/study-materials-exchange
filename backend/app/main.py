@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,9 +7,17 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
 from .api.router import router
 from .core.config import settings
+from .services.moderation import warmup_moderation
 from .services.ratelimit import limiter, match_rule
 
-app = FastAPI(title='Study Materials Exchange', version='0.2.0')
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    warmup_moderation()
+    yield
+
+
+app = FastAPI(title='Study Materials Exchange', version='0.2.0', lifespan=lifespan)
 
 
 @app.middleware('http')

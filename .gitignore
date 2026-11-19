@@ -29,3 +29,9 @@ playwright-report/
 backups/
 
 frontend/test-results/
+
+# Week 12 ML moderation large generated/experimental artifacts (reproducible via scripts)
+ml_moderation/datasets/generated/
+ml_moderation/reports/experimental_models/
+ml_moderation/reports/sklearn_results.json
+ml_moderation/reports/char_cnn_results.json

@@ -1,0 +1,6 @@
+# Training & evaluation dependencies ONLY (NOT installed in Render production).
+# Production backend only needs joblib and numpy from backend/requirements.txt.
+scikit-learn>=1.6,<1.9
+scipy>=1.10
+matplotlib>=3.8
+torch>=2.2

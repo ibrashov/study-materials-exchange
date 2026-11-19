@@ -23,5 +23,7 @@ class Settings(BaseSettings):
     supabase_url: str = ''
     supabase_service_role_key: str = ''
     supabase_bucket: str = 'materials'
+    # Week 12: ML filename moderation artifact path
+    moderation_model_path: Path = ROOT / 'ml_moderation' / 'models' / 'filename_moderator.joblib'
 
 settings = Settings()
