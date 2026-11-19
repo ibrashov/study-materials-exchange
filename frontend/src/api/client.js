@@ -127,3 +127,6 @@ export function getUsers({ q = '', limit = 50, offset = 0, token, signal } = {})
 export const updateUser = (id, body, token) => request('/admin/users/' + id, { method: 'PATCH', body, token });
 export const addCategory = (body, token) => request('/admin/categories', { method: 'POST', body, token });
 export const addCourse = (body, token) => request('/admin/courses', { method: 'POST', body, token });
+// Study assistant
+export const getChatStatus = token => request('/chat/status', { token });
+export const sendChat = (messages, token) => request('/chat', { method: 'POST', body: { messages }, token });

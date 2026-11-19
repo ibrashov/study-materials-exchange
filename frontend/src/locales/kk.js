@@ -17,7 +17,7 @@ export const kk = {
   badFile: 'Бос емес, 50 МБ-тан аспайтын PDF таңдаңыз.', uploaded: 'Материал жүктелді.',
   download: 'PDF жүктеу', downloadLogin: 'Жүктеу үшін кіріңіз', studentRequired: 'Материалды тек студент аккаунттары жүктей алады.',
   totalUsers: 'Пайдаланушылар', totalMaterials: 'Материалдар', retry: 'Қайталау', previous: 'Артқа', next: 'Алға',
-  footer: 'Оқу материалдарымен алмасу · Оқу жобасы · 11-апта', language: 'Тіл',
+  footer: 'Оқу материалдарымен алмасу · Оқу жобасы · 11-апта', language: 'Тіл', assistantOpen: 'Оқу көмекшісі', assistantTitle: 'Оқу көмекшісі', assistantPlaceholder: 'Тақырып немесе материалдарды қалай іздеу туралы сұраңыз…', assistantSend: 'Жіберу', assistantEmpty: 'Курстар туралы кез келген сұрақ қойыңыз. Көмекші сіздің файлдарыңызды көрмейді.', assistantThinking: 'Ойланып жатыр…', assistantClose: 'Жабу',
   locale: 'kk-KZ', skip: 'Мазмұнға өту', accountDisabled: 'Бұл аккаунт бұғатталған. Әкімшіге хабарласыңыз.',
   duplicateItem: 'Мұндай жазба бұрыннан бар.', selfChange: 'Мұнда өз аккаунтыңызды өзгерту мүмкін емес.',
   delete: 'Жою', 'materials.deleteConfirm': ({ title }) => `«${title}» жойылсын ба? Бұл әрекетті қайтару мүмкін емес.`,

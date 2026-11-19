@@ -28,6 +28,7 @@ RULES = (
     Rule('twofa', 'POST', '/api/auth/2fa', 10, 60),
     Rule('upload', 'POST', '/api/materials', 20, 600),
     Rule('download', 'GET', '/api/materials/', 60, 60),
+    Rule('chat', 'POST', '/api/chat', 20, 60),
     Rule('default', None, '', 120, 60),
 )
 

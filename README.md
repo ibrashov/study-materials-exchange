@@ -10,6 +10,16 @@ Read [team conventions](docs/TEAM_CONVENTIONS.md), [API contract](docs/API_CONTR
 
 Request limits (429), TOTP two-factor authentication, search indexes, Kazakh, redesigned UI, 20 UX/UI tests. See [Week 11 status](docs/WEEK11_TEAM_STATUS.md). Migrations are now `0001`–`0004` (`alembic upgrade head`).
 
+## Study assistant (optional AI chatbot)
+
+A floating chat window for signed-in users. It is off by default and turns on when you add an Anthropic API key:
+
+1. Get a key at https://console.anthropic.com (API keys).
+2. Put it in `backend/.env`: `ANTHROPIC_API_KEY=sk-ant-...` (never commit this file).
+3. Restart the backend. The window appears for logged-in users; without a key it stays hidden.
+
+Optional settings: `CHATBOT_MODEL` (default `claude-sonnet-5-5`), `CHATBOT_MAX_TOKENS` (default 800). Requests are limited to 20 per minute per IP, the server keeps only the last 20 messages of a conversation, and the key is never sent to the browser.
+
 ## Current stage
 
 The system works end to end on PostgreSQL: registration, login, role checks, PDF upload, search, authenticated download, an admin panel with user management, course and download reports, verified backups and full English/Russian UI. See [project status](docs/PROJECT_STATUS.md) for each item checked against the Task 9 guide, and what is not done.
