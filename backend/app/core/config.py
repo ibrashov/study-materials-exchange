@@ -25,5 +25,9 @@ class Settings(BaseSettings):
     supabase_bucket: str = 'materials'
     # Week 12: ML filename moderation artifact path
     moderation_model_path: Path = ROOT / 'ml_moderation' / 'models' / 'filename_moderator.joblib'
+    # Study assistant (optional): the feature stays off while anthropic_api_key is empty
+    anthropic_api_key: str = ''
+    chatbot_model: str = 'claude-sonnet-5-5'
+    chatbot_max_tokens: int = Field(default=800, ge=64, le=4000)
 
 settings = Settings()

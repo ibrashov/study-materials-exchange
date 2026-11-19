@@ -5,6 +5,7 @@ import SecurityPage from './features/auth/SecurityPage';
 import Materials from './features/materials/MaterialsPage';
 import UploadForm from './features/materials/UploadForm';
 import AdminPage from './features/admin/AdminPage';
+import ChatWidget from './features/chat/ChatWidget';
 import { createTranslator, pickLanguage } from './locales/messages';
 const pages = ['home', 'materials', 'registration', 'login', 'upload', 'security', 'admin'];
 const languages = [['en', 'EN'], ['ru', 'RU'], ['kk', 'ҚАЗ']];
@@ -45,5 +46,5 @@ export default function App() {
       {page === 'upload' && <UploadForm t={t} session={session}/>}
       {page === 'security' && <SecurityPage t={t} session={session} onChange={user => setSession(current => ({ ...current, user }))}/>}
       {page === 'admin' && <AdminPage t={t} session={session}/>}
-    </main><footer>{t('footer')}</footer></div>;
+    </main><ChatWidget t={t} session={session}/><footer>{t('footer')}</footer></div>;
 }
