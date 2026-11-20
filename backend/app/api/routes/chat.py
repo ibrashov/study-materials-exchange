@@ -20,7 +20,6 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(min_length=1, max_length=20)
-    include_meta: bool = False
 
 
 @contextmanager
@@ -63,29 +62,13 @@ def chat_status(_user: User = Depends(current_user)):
     return {'enabled': chatbot.enabled()}
 
 
-@router.get('/chat/agent')
-def chat_agent_info(request: Request, user: User = Depends(current_user)):
-    with optional_db(request, user) as db:
-        cfg = chatbot.load_agent_config(db)
-    return {
-        'enabled': chatbot.enabled(),
-        'provider': chatbot.active_provider() or 'none',
-        'model': cfg['model'],
-        'tools_enabled': cfg['tools_enabled'],
-        'active_tools': cfg['enabled_tools'] if cfg['tools_enabled'] else [],
-        'max_tool_steps': cfg['max_tool_steps'],
-    }
-
-
 @router.post('/chat')
 def chat(body: ChatRequest, request: Request, user: User = Depends(current_user)):
     if body.messages[-1].role != 'user':
         raise HTTPException(400, 'The last message must come from the user')
     try:
         with optional_db(request, user) as db:
-            result = chatbot.ask_agent([m.model_dump() for m in body.messages], db=db, user=user)
+            reply = chatbot.ask([m.model_dump() for m in body.messages], db=db, user=user)
     except chatbot.ChatbotError as error:
         raise HTTPException(error.status, error.message)
-    if body.include_meta:
-        return result
-    return {'reply': result['reply']}
+    return {'reply': reply}

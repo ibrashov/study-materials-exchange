@@ -28,16 +28,11 @@ class Settings(BaseSettings):
     supabase_bucket: str = 'materials'
     # Week 12: ML filename moderation artifact path
     moderation_model_path: Path = ROOT / 'ml_moderation' / 'models' / 'filename_moderator.joblib'
-    # Study assistant / AI Agent (optional): supports Inception Labs (INCEPTION_API_KEY) or Anthropic (ANTHROPIC_API_KEY)
-    inception_api_key: str = ''
-    inception_base_url: str = 'https://api.inceptionlabs.ai/v1'
-    inception_model: str = 'mercury-2'
-    anthropic_api_key: str = ''
-    chatbot_model: str = 'claude-sonnet-5-5'
+    # Study assistant chatbot (optional): Google Gemini
+    gemini_api_key: str = ''
+    gemini_model: str = 'gemini-3.6-flash'
+    gemini_fallback_model: str = 'gemini-3.1-flash-lite'
     chatbot_max_tokens: int = Field(default=800, ge=64, le=4000)
     chatbot_temperature: float = Field(default=0.3, ge=0.0, le=1.0)
-    chatbot_tools_enabled: bool = True
-    chatbot_max_tool_steps: int = Field(default=4, ge=1, le=8)
-    chatbot_system_prompt: str = ''
 
 settings = Settings()

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getChatAgentInfo, getChatStatus, sendChat } from '../../api/client';
+import { getChatStatus, sendChat } from '../../api/client';
 
 const MAX_HISTORY = 20;
 
@@ -7,7 +7,6 @@ const MAX_HISTORY = 20;
 export default function ChatWidget({ t, session }) {
   const token = session?.token;
   const [enabled, setEnabled] = useState(false);
-  const [agentInfo, setAgentInfo] = useState(null);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState('');
@@ -15,16 +14,12 @@ export default function ChatWidget({ t, session }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!token) { setEnabled(false); setAgentInfo(null); setOpen(false); setMessages([]); return; }
+    if (!token) { setEnabled(false); setOpen(false); setMessages([]); return; }
     let active = true;
     getChatStatus(token)
       .then(status => {
         if (!active) return;
-        const isEnabled = Boolean(status.enabled);
-        setEnabled(isEnabled);
-        if (isEnabled) {
-          getChatAgentInfo(token).then(info => { if (active) setAgentInfo(info); }).catch(() => {});
-        }
+        setEnabled(Boolean(status.enabled));
       })
       .catch(() => { if (active) setEnabled(false); });
     return () => { active = false; };
@@ -42,8 +37,8 @@ export default function ChatWidget({ t, session }) {
     setError('');
     try {
       const apiMessages = next.slice(-MAX_HISTORY).map(({ role, content }) => ({ role, content }));
-      const data = await sendChat(apiMessages, token, true);
-      setMessages([...next, { role: 'assistant', content: data.reply, toolsUsed: data.tools_used || [] }]);
+      const data = await sendChat(apiMessages, token);
+      setMessages([...next, { role: 'assistant', content: data.reply }]);
     } catch (err) {
       setError(err.message || t('failed'));
     } finally {
@@ -60,14 +55,11 @@ export default function ChatWidget({ t, session }) {
     if (event.key === 'Escape') setOpen(false);
   }
 
-  const toolCount = agentInfo?.active_tools?.length || 0;
-
   return <div className="chat-widget" onKeyDown={onKeyDown}>
     {open && <section className="chat-panel" aria-label={t('assistantTitle')}>
       <header className="chat-head">
         <div>
           <strong>{t('assistantTitle')}</strong>
-          {toolCount > 0 && <span className="chat-agent-badge">{t('assistantAgentBadge', { count: toolCount })}</span>}
         </div>
         <button type="button" className="quiet" onClick={() => setOpen(false)} aria-label={t('assistantClose')}>×</button>
       </header>
@@ -81,9 +73,6 @@ export default function ChatWidget({ t, session }) {
         </div>}
         {messages.map((m, i) => <div key={i} className={m.role === 'user' ? 'chat-msg user' : 'chat-msg bot'}>
           <p>{m.content}</p>
-          {m.toolsUsed?.length > 0 && <div className="chat-tools-used">
-            {Array.from(new Set(m.toolsUsed)).map(tool => <span key={tool} className="chat-tool-pill">{t(`agent.tool.${tool}`)}</span>)}
-          </div>}
         </div>)}
         {busy && <p className="muted">{t('assistantThinking')}</p>}
       </div>
