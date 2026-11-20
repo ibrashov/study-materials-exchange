@@ -1,7 +1,9 @@
-"""Study assistant AI Agent: configurable Anthropic Messages API with live platform tools.
+"""Study assistant AI Agent: supports Inception Labs (Mercury, OpenAI-compatible) and Anthropic APIs.
 
-The API key lives only on the server (backend/.env: ANTHROPIC_API_KEY). Without a key the
-feature is switched off and the frontend hides the chat window.
+API keys live only on the server (backend/.env or Render Environment):
+  - INCEPTION_API_KEY (https://platform.inceptionlabs.ai/dashboard/api-keys) -> Mercury models (default: mercury-2)
+  - ANTHROPIC_API_KEY (fallback) -> Claude models
+Without either key, the feature stays switched off and the frontend hides the chat window.
 When tools are enabled, the agent can search real study materials, list courses/categories,
 check the signed-in user's gamification progress, view the leaderboard, and inspect their trash.
 """
@@ -83,13 +85,29 @@ class ChatbotError(Exception):
         self.message = message
 
 
+def active_provider() -> str | None:
+    if settings.inception_api_key.strip():
+        return 'inception'
+    if settings.anthropic_api_key.strip():
+        return 'anthropic'
+    return None
+
+
 def enabled() -> bool:
-    return bool(settings.anthropic_api_key.strip())
+    return active_provider() is not None
+
+
+def default_model_for_provider(provider: str | None = None) -> str:
+    prov = provider if provider is not None else active_provider()
+    if prov == 'anthropic':
+        return settings.chatbot_model
+    return settings.inception_model
 
 
 def default_agent_config() -> dict:
+    provider = active_provider()
     return {
-        'model': settings.chatbot_model,
+        'model': default_model_for_provider(provider),
         'max_tokens': int(settings.chatbot_max_tokens),
         'temperature': float(settings.chatbot_temperature),
         'tools_enabled': bool(settings.chatbot_tools_enabled),
@@ -100,6 +118,7 @@ def default_agent_config() -> dict:
 
 
 def load_agent_config(db: Session | None) -> dict:
+    provider = active_provider()
     defaults = default_agent_config()
     if db is None:
         return defaults
@@ -109,8 +128,14 @@ def load_agent_config(db: Session | None) -> dict:
         return defaults
     valid_tools = [name for name in raw.get('enabled_tools', ALL_TOOL_NAMES) if name in TOOL_DEFINITIONS]
     prompt = str(raw.get('system_prompt') or '').strip() or DEFAULT_SYSTEM_PROMPT
+    model = str(raw.get('model') or defaults['model']).strip() or defaults['model']
+    # Auto-adapt stale default model when switching between Inception and Anthropic keys.
+    if provider == 'inception' and model.startswith('claude-'):
+        model = settings.inception_model
+    elif provider == 'anthropic' and model.startswith('mercury'):
+        model = settings.chatbot_model
     return {
-        'model': str(raw.get('model') or defaults['model']).strip() or defaults['model'],
+        'model': model,
         'max_tokens': max(64, min(4000, int(raw.get('max_tokens', defaults['max_tokens'])))),
         'temperature': max(0.0, min(1.0, float(raw.get('temperature', defaults['temperature'])))),
         'tools_enabled': bool(raw.get('tools_enabled', defaults['tools_enabled'])),
@@ -268,23 +293,28 @@ def _call_anthropic(payload: dict) -> dict:
     return response.json()
 
 
-def ask_agent(messages: list[dict], *, db: Session | None = None, user: User | None = None) -> dict:
-    """Run the configurable AI Agent (with optional tool-calling loop) and return reply + metadata."""
-    if not enabled():
-        raise ChatbotError(503, 'Chatbot is not configured. Set ANTHROPIC_API_KEY in backend/.env.')
+def _call_inception(payload: dict) -> dict:
+    url = f"{settings.inception_base_url.rstrip('/')}/chat/completions"
+    try:
+        response = httpx.post(
+            url,
+            timeout=30,
+            headers={
+                'Authorization': f'Bearer {settings.inception_api_key.strip()}',
+                'Content-Type': 'application/json',
+            },
+            json=payload,
+        )
+    except httpx.HTTPError as error:
+        log.warning('Inception Labs request failed: %s', type(error).__name__)
+        raise ChatbotError(503, 'Chatbot service is unreachable')
+    if response.status_code != 200:
+        log.warning('Inception Labs upstream returned HTTP %s', response.status_code)
+        raise ChatbotError(503, 'Chatbot request failed')
+    return response.json()
 
-    config = load_agent_config(db)
-    # The Messages API expects the conversation to start with a user turn.
-    conversation = list(messages)
-    while conversation and conversation[0]['role'] == 'assistant':
-        conversation = conversation[1:]
 
-    active_tools = (
-        [TOOL_DEFINITIONS[name] for name in config['enabled_tools'] if name in TOOL_DEFINITIONS]
-        if config['tools_enabled'] and db is not None
-        else []
-    )
-
+def _run_anthropic_loop(conversation: list[dict], config: dict, active_tools: list[dict], db: Session | None, user: User | None) -> tuple[str, list[str]]:
     tools_used: list[str] = []
     max_steps = int(config['max_tool_steps']) if active_tools else 1
     data: dict = {}
@@ -325,6 +355,102 @@ def ask_agent(messages: list[dict], *, db: Session | None = None, user: User | N
 
     parts = [block.get('text', '') for block in data.get('content', []) if block.get('type') == 'text']
     reply = ''.join(parts).strip() or 'No answer was returned.'
+    return reply, tools_used
+
+
+def _run_inception_loop(conversation: list[dict], config: dict, active_tools: list[dict], db: Session | None, user: User | None) -> tuple[str, list[str]]:
+    """OpenAI-compatible tool-calling loop for Inception Labs Mercury models."""
+    openai_messages: list[dict] = [{'role': 'system', 'content': config['system_prompt']}, *conversation]
+    openai_tools = [
+        {
+            'type': 'function',
+            'function': {
+                'name': t['name'],
+                'description': t['description'],
+                'parameters': t['input_schema'],
+            },
+        }
+        for t in active_tools
+    ]
+    tools_used: list[str] = []
+    max_steps = int(config['max_tool_steps']) if openai_tools else 1
+    message: dict = {}
+
+    for _step in range(max_steps):
+        payload: dict = {
+            'model': config['model'],
+            'max_tokens': config['max_tokens'],
+            'temperature': config['temperature'],
+            'messages': openai_messages,
+        }
+        if openai_tools:
+            payload['tools'] = openai_tools
+
+        data = _call_inception(payload)
+        choices = data.get('choices') or []
+        message = (choices[0].get('message') if choices else None) or {}
+        tool_calls = message.get('tool_calls') or []
+
+        if not tool_calls or not openai_tools:
+            break
+
+        openai_messages.append({
+            'role': 'assistant',
+            'content': message.get('content') or '',
+            'tool_calls': tool_calls,
+        })
+        for call in tool_calls:
+            fn = call.get('function') or {}
+            tool_name = str(fn.get('name', ''))
+            raw_args = fn.get('arguments')
+            if isinstance(raw_args, str):
+                try:
+                    parsed_args = json.loads(raw_args) if raw_args.strip() else {}
+                except ValueError:
+                    parsed_args = {}
+            elif isinstance(raw_args, dict):
+                parsed_args = raw_args
+            else:
+                parsed_args = {}
+
+            if tool_name not in config['enabled_tools']:
+                result = {'error': f'Tool {tool_name} is disabled'}
+            else:
+                tools_used.append(tool_name)
+                result = execute_tool(tool_name, parsed_args, db, user)
+
+            openai_messages.append({
+                'role': 'tool',
+                'tool_call_id': str(call.get('id', '')),
+                'content': json.dumps(result, ensure_ascii=False),
+            })
+
+    reply = str(message.get('content') or '').strip() or 'No answer was returned.'
+    return reply, tools_used
+
+
+def ask_agent(messages: list[dict], *, db: Session | None = None, user: User | None = None) -> dict:
+    """Run the configurable AI Agent (Inception Labs or Anthropic) with optional tool-calling loop."""
+    provider = active_provider()
+    if provider is None:
+        raise ChatbotError(503, 'Chatbot is not configured. Set INCEPTION_API_KEY or ANTHROPIC_API_KEY in backend/.env.')
+
+    config = load_agent_config(db)
+    # Normalize conversation to start with a user turn.
+    conversation = list(messages)
+    while conversation and conversation[0]['role'] == 'assistant':
+        conversation = conversation[1:]
+
+    active_tools = (
+        [TOOL_DEFINITIONS[name] for name in config['enabled_tools'] if name in TOOL_DEFINITIONS]
+        if config['tools_enabled'] and db is not None
+        else []
+    )
+
+    if provider == 'inception':
+        reply, tools_used = _run_inception_loop(conversation, config, active_tools, db, user)
+    else:
+        reply, tools_used = _run_anthropic_loop(conversation, config, active_tools, db, user)
 
     # Award daily AI study session XP when running with a real DB user.
     if db is not None and user is not None and hasattr(user, 'user_id'):
@@ -343,6 +469,7 @@ def ask_agent(messages: list[dict], *, db: Session | None = None, user: User | N
         'reply': reply,
         'tools_used': tools_used,
         'model': config['model'],
+        'provider': provider,
     }
 
 

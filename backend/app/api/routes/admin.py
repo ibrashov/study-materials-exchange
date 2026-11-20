@@ -161,6 +161,7 @@ def get_agent_config(db: Session = Depends(get_db)):
     cfg = chatbot.load_agent_config(db)
     return {
         'api_key_configured': chatbot.enabled(),
+        'provider': chatbot.active_provider() or 'none',
         **cfg,
         'default_system_prompt': chatbot.DEFAULT_SYSTEM_PROMPT,
         'available_tools': list(chatbot.ALL_TOOL_NAMES),
@@ -177,6 +178,7 @@ def update_agent_config(body: AgentConfigUpdate, db: Session = Depends(get_db)):
     cfg = chatbot.save_agent_config(db, updates)
     return {
         'api_key_configured': chatbot.enabled(),
+        'provider': chatbot.active_provider() or 'none',
         **cfg,
         'default_system_prompt': chatbot.DEFAULT_SYSTEM_PROMPT,
         'available_tools': list(chatbot.ALL_TOOL_NAMES),

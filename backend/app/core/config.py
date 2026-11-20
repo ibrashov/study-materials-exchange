@@ -28,7 +28,10 @@ class Settings(BaseSettings):
     supabase_bucket: str = 'materials'
     # Week 12: ML filename moderation artifact path
     moderation_model_path: Path = ROOT / 'ml_moderation' / 'models' / 'filename_moderator.joblib'
-    # Study assistant / AI Agent (optional): the feature stays off while anthropic_api_key is empty
+    # Study assistant / AI Agent (optional): supports Inception Labs (INCEPTION_API_KEY) or Anthropic (ANTHROPIC_API_KEY)
+    inception_api_key: str = ''
+    inception_base_url: str = 'https://api.inceptionlabs.ai/v1'
+    inception_model: str = 'mercury-2'
     anthropic_api_key: str = ''
     chatbot_model: str = 'claude-sonnet-5-5'
     chatbot_max_tokens: int = Field(default=800, ge=64, le=4000)

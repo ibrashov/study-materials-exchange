@@ -262,3 +262,90 @@ class AiAgentTests(PostgresCase):
         # Daily AI study session awards +5 XP once per day
         p_after = self.client.get('/api/gamification/me', headers=self.one).json()
         self.assertEqual(p_after['xp_points'], 105)
+
+
+class InceptionLabsAgentTests(PostgresCase):
+    def setUp(self):
+        super().setUp()
+        with self.engine.begin() as conn:
+            conn.execute(text("DELETE FROM app_settings WHERE key = 'agent_config'"))
+        self.patches = [
+            mock.patch.object(settings, 'inception_api_key', 'sk_inception_test_secret_12345'),
+            mock.patch.object(settings, 'anthropic_api_key', ''),
+            mock.patch.object(settings, 'inception_model', 'mercury-2'),
+        ]
+        for p in self.patches:
+            p.start()
+            self.addCleanup(p.stop)
+
+    def test_inception_agent_openai_tool_calling_and_error_redaction(self):
+        self.upload(headers=self.one, title='Database Normalization Guide')
+
+        # Status and agent info report Inception Labs provider & mercury-2
+        self.assertEqual(self.client.get('/api/chat/status', headers=self.one).json(), {'enabled': True})
+        info = self.client.get('/api/chat/agent', headers=self.one).json()
+        self.assertEqual(info['provider'], 'inception')
+        self.assertEqual(info['model'], 'mercury-2')
+
+        # Turn 1: Mercury requests OpenAI-format tool_calls
+        turn1 = mock.Mock(status_code=200)
+        turn1.json.return_value = {
+            'choices': [{
+                'message': {
+                    'role': 'assistant',
+                    'content': '',
+                    'tool_calls': [{
+                        'id': 'call_abc1',
+                        'type': 'function',
+                        'function': {
+                            'name': 'search_materials',
+                            'arguments': json.dumps({'query': 'Normalization'}),
+                        },
+                    }],
+                },
+            }],
+        }
+        # Turn 2: Mercury returns final answer
+        turn2 = mock.Mock(status_code=200)
+        turn2.json.return_value = {
+            'choices': [{
+                'message': {
+                    'role': 'assistant',
+                    'content': 'I found Database Normalization Guide for you!',
+                },
+            }],
+        }
+
+        with mock.patch('backend.app.services.chatbot.httpx.post', side_effect=[turn1, turn2]) as post:
+            resp = self.client.post(
+                '/api/chat',
+                headers=self.one,
+                json={'messages': [{'role': 'user', 'content': 'Find normalization notes'}], 'include_meta': True},
+            )
+
+        self.assertEqual(resp.status_code, 200, resp.text)
+        body = resp.json()
+        self.assertEqual(body['provider'], 'inception')
+        self.assertEqual(body['model'], 'mercury-2')
+        self.assertEqual(body['tools_used'], ['search_materials'])
+        self.assertIn('Database Normalization Guide', body['reply'])
+
+        # Verify Inception Labs endpoint, Bearer auth, and OpenAI tool result message
+        first_call = post.call_args_list[0]
+        self.assertEqual(first_call.args[0], 'https://api.inceptionlabs.ai/v1/chat/completions')
+        self.assertEqual(first_call.kwargs['headers']['Authorization'], 'Bearer sk_inception_test_secret_12345')
+        self.assertEqual(first_call.kwargs['json']['model'], 'mercury-2')
+        self.assertEqual(first_call.kwargs['json']['tools'][0]['type'], 'function')
+
+        second_messages = post.call_args_list[1].kwargs['json']['messages']
+        tool_msg = second_messages[-1]
+        self.assertEqual(tool_msg['role'], 'tool')
+        self.assertEqual(tool_msg['tool_call_id'], 'call_abc1')
+        self.assertIn('Database Normalization Guide', tool_msg['content'])
+
+        # Upstream error never leaks API key
+        bad = mock.Mock(status_code=401, text='invalid key sk_inception_test_secret_12345')
+        with mock.patch('backend.app.services.chatbot.httpx.post', return_value=bad):
+            err_resp = self.client.post('/api/chat', headers=self.one, json={'messages': [{'role': 'user', 'content': 'hi'}]})
+        self.assertEqual(err_resp.status_code, 503)
+        self.assertNotIn('sk_inception_test_secret_12345', err_resp.text)

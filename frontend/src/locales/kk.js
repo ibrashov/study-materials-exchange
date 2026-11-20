@@ -93,7 +93,7 @@ export const kk = {
   'admin.backupsSaved': 'Резервтік көшіру кестесі сақталды.', 'admin.backupCreated': ({ title }) => `Көшірме жасалды: ${title}`,
   'admin.backupName': 'Көшірме атауы', 'admin.backupFiles': 'Файлдар', 'admin.backupVerified': 'Тексеруден өтті',
   'admin.agent': 'ЖИ-агент баптаулары', 'admin.agentHelp': 'Оқу көмекшісі ЖИ-агентінің моделін, промптын және платформа құралдарын баптаңыз.',
-  'admin.agentKeyOn': 'ANTHROPIC_API_KEY кілті бапталған', 'admin.agentKeyOff': 'ANTHROPIC_API_KEY кілті жоқ (агент жасырын)',
+  'admin.agentKeyOn': 'API кілті бапталған', 'admin.agentKeyOff': 'INCEPTION_API_KEY / ANTHROPIC_API_KEY кілті жоқ (агент жасырын)',
   'admin.agentModel': 'Модель', 'admin.agentMaxTokens': 'Макс. токен', 'admin.agentTemperature': 'Температура',
   'admin.agentToolsToggle': 'Платформа құралдарын қосу (агент режимі)', 'admin.agentMaxSteps': 'Макс. құрал қадамы',
   'admin.agentToolsList': 'Рұқсат етілген агент құралдары', 'admin.agentPrompt': 'Жүйелік промпт',

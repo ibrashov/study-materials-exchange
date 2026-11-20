@@ -60,12 +60,20 @@ export default function AgentConfigPanel({ token, t }) {
   return <AdminPanel id="admin-agent" title={t('admin.agent')} request={agent} t={t}>{data => <>
     <p className="admin-help">{t('admin.agentHelp')}</p>
     <p className={data.api_key_configured ? 'status-pill on' : 'status-pill'}>
-      {data.api_key_configured ? t('admin.agentKeyOn') : t('admin.agentKeyOff')}
+      {data.api_key_configured
+        ? `${t('admin.agentKeyOn')} (${data.provider === 'inception' ? 'Inception Labs' : 'Anthropic'})`
+        : t('admin.agentKeyOff')}
     </p>
     <form className="admin-config-form" onSubmit={save}>
       <div className="admin-grid-3">
         <label>{t('admin.agentModel')}
-          <input value={model} onChange={e => setModel(e.target.value)} maxLength={100} required/>
+          <input list="agent-model-presets" value={model} onChange={e => setModel(e.target.value)} maxLength={100} required/>
+          <datalist id="agent-model-presets">
+            <option value="mercury-2"/>
+            <option value="mercury-2.5"/>
+            <option value="mercury-3"/>
+            <option value="claude-sonnet-5-5"/>
+          </datalist>
         </label>
         <label>{t('admin.agentMaxTokens')}
           <input type="number" min={64} max={4000} value={maxTokens} onChange={e => setMaxTokens(e.target.value)} required/>

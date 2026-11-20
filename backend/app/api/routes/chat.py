@@ -69,6 +69,7 @@ def chat_agent_info(request: Request, user: User = Depends(current_user)):
         cfg = chatbot.load_agent_config(db)
     return {
         'enabled': chatbot.enabled(),
+        'provider': chatbot.active_provider() or 'none',
         'model': cfg['model'],
         'tools_enabled': cfg['tools_enabled'],
         'active_tools': cfg['enabled_tools'] if cfg['tools_enabled'] else [],

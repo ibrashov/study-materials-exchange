@@ -97,6 +97,7 @@ class BackupScheduleUpdate(BaseModel):
 
 class AgentConfigResponse(BaseModel):
     api_key_configured: bool
+    provider: str
     model: str
     max_tokens: int
     temperature: float
