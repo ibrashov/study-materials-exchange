@@ -17,6 +17,17 @@ class MaterialList(BaseModel):
     limit: int
     offset: int
 
+class TrashMaterialResponse(MaterialResponse):
+    deleted_at: datetime
+    deleted_by_id: int | None
+
+class TrashMaterialList(BaseModel):
+    items: list[TrashMaterialResponse]
+    total: int
+
+class EmptyTrashResponse(BaseModel):
+    deleted_count: int
+
 class CategoryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     category_id: int

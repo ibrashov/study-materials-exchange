@@ -28,7 +28,11 @@ Backups contain password hashes and every uploaded file. They are created readab
 
 ## Running it automatically
 
-The project does not install a schedule by itself, because the schedule belongs to the machine that hosts the system.
+The backend now includes a built-in scheduled backup runner (`backend/app/services/backup_scheduler.py`) configurable in the **Admin → Scheduled backups** panel (`GET /api/admin/backups`, `PATCH /api/admin/backups/schedule`, `POST /api/admin/backups/run`) or via environment variables (`BACKUP_SCHEDULE_ENABLED=true`, `BACKUP_INTERVAL_HOURS=24`, `BACKUP_SCHEDULE_HOUR_UTC=2`, `BACKUP_KEEP=7`).
+
+For cloud deployments (e.g., Render + Supabase), a GitHub Actions daily schedule workflow is provided in `.github/workflows/scheduled-backup.yml` (runs daily at `02:00 UTC` and on manual dispatch using the `DATABASE_URL` repository secret).
+
+You can also schedule the CLI script directly on a host machine:
 
 macOS or Linux, using `crontab -e`:
 

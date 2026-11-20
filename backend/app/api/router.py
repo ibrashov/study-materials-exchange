@@ -4,6 +4,8 @@ from .routes.auth import router as auth_router
 from .routes.admin import router as admin_router
 from .routes.materials import router as materials_router
 from .routes.chat import router as chat_router
+from .routes.gamification import router as gamification_router
+
 router = APIRouter(prefix='/api')
-for feature_router in (health_router, auth_router, admin_router, materials_router, chat_router):
+for feature_router in (health_router, auth_router, admin_router, materials_router, chat_router, gamification_router):
     router.include_router(feature_router)

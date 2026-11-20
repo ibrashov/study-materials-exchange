@@ -113,6 +113,10 @@ export async function downloadMaterial(id, token) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export const deleteMaterial = (id, token) => request('/materials/' + id, { method: 'DELETE', token });
+export const trashMaterial = (id, token) => request('/materials/' + id + '/trash', { method: 'POST', token });
+export const restoreMaterial = (id, token) => request('/materials/' + id + '/restore', { method: 'POST', token });
+export const getTrash = (token, signal) => request('/materials/trash', { token, signal });
+export const emptyTrash = token => request('/materials/trash', { method: 'DELETE', token });
 export const getOverview = (token, signal) => request('/admin/overview', { token, signal });
 export const getCourseReport = (token, signal) => request('/admin/reports/courses', { token, signal });
 export const getDownloadReport = (token, signal) => request('/admin/reports/downloads', { token, signal });
@@ -127,6 +131,21 @@ export function getUsers({ q = '', limit = 50, offset = 0, token, signal } = {})
 export const updateUser = (id, body, token) => request('/admin/users/' + id, { method: 'PATCH', body, token });
 export const addCategory = (body, token) => request('/admin/categories', { method: 'POST', body, token });
 export const addCourse = (body, token) => request('/admin/courses', { method: 'POST', body, token });
-// Study assistant
+// Scheduled backups (admin)
+export const getAdminBackups = (token, signal) => request('/admin/backups', { token, signal });
+export const updateBackupSchedule = (body, token) => request('/admin/backups/schedule', { method: 'PATCH', body, token });
+export const runAdminBackup = token => request('/admin/backups/run', { method: 'POST', token });
+// AI Agent configuration (admin)
+export const getAdminAgentConfig = (token, signal) => request('/admin/agent', { token, signal });
+export const updateAdminAgentConfig = (body, token) => request('/admin/agent', { method: 'PATCH', body, token });
+// Gamification
+export const getMyGamification = (token, signal) => request('/gamification/me', { token, signal });
+export const getLeaderboard = (limit = 20, signal) => request('/gamification/leaderboard?limit=' + limit, { signal });
+// Study assistant / AI Agent
 export const getChatStatus = token => request('/chat/status', { token });
-export const sendChat = (messages, token) => request('/chat', { method: 'POST', body: { messages }, token });
+export const getChatAgentInfo = token => request('/chat/agent', { token });
+export const sendChat = (messages, token, includeMeta = false) => request('/chat', {
+  method: 'POST',
+  body: includeMeta ? { messages, include_meta: true } : { messages },
+  token,
+});

@@ -1,5 +1,5 @@
-from datetime import datetime
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, func, text
+from datetime import date, datetime
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 class Base(DeclarativeBase):
@@ -17,6 +17,11 @@ class User(Base):
     # Week 11: TOTP two-factor authentication; the secret is stored encrypted (services/twofactor.py).
     totp_secret: Mapped[str | None] = mapped_column(Text)
     totp_enabled: Mapped[bool] = mapped_column(Boolean, server_default=text('false'))
+    # Gamification fields
+    xp_points: Mapped[int] = mapped_column(Integer, server_default=text('0'))
+    current_streak: Mapped[int] = mapped_column(Integer, server_default=text('0'))
+    longest_streak: Mapped[int] = mapped_column(Integer, server_default=text('0'))
+    last_activity_date: Mapped[date | None] = mapped_column(Date)
 
 class Category(Base):
     __tablename__ = 'categories'
@@ -45,6 +50,7 @@ class Material(Base):
         Index('ix_materials_course_newest', 'course_id', text('material_id DESC')),
         Index('ix_materials_category_newest', 'category_id', text('material_id DESC')),
         Index('ix_materials_title_trgm', 'title', postgresql_using='gin', postgresql_ops={'title': 'gin_trgm_ops'}),
+        Index('ix_materials_deleted_at', 'deleted_at'),
     )
     material_id: Mapped[int] = mapped_column(primary_key=True)
     uploader_id: Mapped[int] = mapped_column(ForeignKey('users.user_id'), index=True)
@@ -55,3 +61,29 @@ class Material(Base):
     file_size_bytes: Mapped[int] = mapped_column(Integer)
     download_count: Mapped[int] = mapped_column(Integer, server_default=text('0'))
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # Trash / soft-delete support
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    deleted_by_id: Mapped[int | None] = mapped_column(ForeignKey('users.user_id'))
+
+class XpEvent(Base):
+    __tablename__ = 'xp_events'
+    event_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True)
+    action: Mapped[str] = mapped_column(String(50))
+    points: Mapped[int] = mapped_column(Integer)
+    description: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class UserBadge(Base):
+    __tablename__ = 'user_badges'
+    __table_args__ = (UniqueConstraint('user_id', 'badge_code', name='uq_user_badges_user_code'),)
+    badge_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True)
+    badge_code: Mapped[str] = mapped_column(String(50))
+    earned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class AppSetting(Base):
+    __tablename__ = 'app_settings'
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value_json: Mapped[str] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

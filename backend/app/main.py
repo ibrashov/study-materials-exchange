@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
 from .api.router import router
 from .core.config import settings
+from .services.backup_scheduler import scheduler as backup_scheduler
 from .services.moderation import warmup_moderation
 from .services.ratelimit import limiter, match_rule
 
@@ -14,7 +15,11 @@ from .services.ratelimit import limiter, match_rule
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     warmup_moderation()
-    yield
+    backup_scheduler.start()
+    try:
+        yield
+    finally:
+        await backup_scheduler.stop()
 
 
 app = FastAPI(title='Study Materials Exchange', version='0.2.0', lifespan=lifespan)

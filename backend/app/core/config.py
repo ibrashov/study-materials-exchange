@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     uploads_dir: Path = ROOT / 'uploads'
     backups_dir: Path = ROOT / 'backups'
     backup_keep: int = Field(default=7, ge=1, le=365)
+    backup_schedule_enabled: bool = False
+    backup_interval_hours: int = Field(default=24, ge=1, le=720)
+    backup_schedule_hour_utc: int = Field(default=2, ge=0, le=23)
     # Week 11: request limits and two-factor policy
     rate_limit_enabled: bool = True
     trust_proxy_headers: bool = False
@@ -25,9 +28,13 @@ class Settings(BaseSettings):
     supabase_bucket: str = 'materials'
     # Week 12: ML filename moderation artifact path
     moderation_model_path: Path = ROOT / 'ml_moderation' / 'models' / 'filename_moderator.joblib'
-    # Study assistant (optional): the feature stays off while anthropic_api_key is empty
+    # Study assistant / AI Agent (optional): the feature stays off while anthropic_api_key is empty
     anthropic_api_key: str = ''
     chatbot_model: str = 'claude-sonnet-5-5'
     chatbot_max_tokens: int = Field(default=800, ge=64, le=4000)
+    chatbot_temperature: float = Field(default=0.3, ge=0.0, le=1.0)
+    chatbot_tools_enabled: bool = True
+    chatbot_max_tool_steps: int = Field(default=4, ge=1, le=8)
+    chatbot_system_prompt: str = ''
 
 settings = Settings()

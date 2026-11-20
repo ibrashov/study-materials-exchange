@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { deleteMaterial, downloadMaterial } from '../../api/client';
+import { downloadMaterial, trashMaterial } from '../../api/client';
 import { errorKey } from '../../locales/messages';
 import { formatFileSize, formatUploadedAt, labelFor } from './format';
 
@@ -14,8 +14,8 @@ export default function MaterialList({ items, categoryNames, courseNames, busy, 
   }
   const canDelete = item => session && (session.user.role === 'admin' || item.uploader_id === session.user.user_id);
   function remove(item) {
-    if (!window.confirm(t('materials.deleteConfirm', { title: item.title }))) return;
-    run(item.material_id, async () => { await deleteMaterial(item.material_id, session.token); onDeleted(); });
+    if (!window.confirm(t('materials.trashConfirm', { title: item.title }))) return;
+    run(item.material_id, async () => { await trashMaterial(item.material_id, session.token); onDeleted(); });
   }
   return <>{error && <p role="alert">{t(error)}</p>}<ul className="materials-list" aria-busy={busy}>
     {items.map(item => <li key={item.material_id} className="materials-item" data-tone={item.category_id % 4}>

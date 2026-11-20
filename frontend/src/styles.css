@@ -136,5 +136,48 @@ footer { border-top: 1px solid var(--line); padding: 20px 0 32px; color: var(--m
 .chat-msg.bot { align-self: flex-start; background: #eef2f7; color: #1b1f24; }
 .chat-form { display: flex; gap: 6px; padding: 10px 12px; border-top: 1px solid #e3e7ee; }
 .chat-form input { flex: 1; min-width: 0; }
+.chat-msg p { margin: 0; }
+.chat-agent-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--mark); color: var(--ink); font-size: .75rem; font-weight: 700; }
+.chat-tools-used { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.chat-tool-pill { font-size: .72rem; padding: 2px 7px; border-radius: 999px; background: #dde5f7; color: var(--brand-dark); font-weight: 600; }
+.chat-suggestions { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.chat-chip { font-size: .85rem; min-height: 36px; padding: 6px 10px; text-align: left; border-color: var(--line-strong); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 480px) { .chat-widget { right: 8px; bottom: 8px; } }
+
+/* Trash, Gamification & Admin config panels */
+.page-head-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
+.danger-btn { border-color: var(--err); color: var(--err); }
+.danger-btn:hover:not(:disabled) { background: #fbeae9; }
+.gami-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 24px; }
+.gami-hero { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin: 12px 0; }
+.gami-level-box { display: flex; align-items: center; gap: 10px; }
+.gami-level-badge { background: var(--ink); color: var(--mark); padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: .85rem; }
+.gami-rank-name { font-family: var(--serif); font-size: 1.25rem; }
+.gami-xp-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.gami-xp-total { font-weight: 700; color: var(--brand); font-size: 1.1rem; }
+.gami-progress-track { height: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; margin-bottom: 18px; }
+.gami-progress-fill { height: 100%; background: linear-gradient(90deg, var(--brand), var(--tone-1)); transition: width .25s ease; }
+.gami-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 0 0 20px; }
+.gami-stats div { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; }
+.gami-stats dt { font-size: .82rem; color: var(--muted); }
+.gami-stats dd { margin: 4px 0 0; font-size: 1.2rem; font-weight: 700; }
+.badge-grid { list-style: none; margin: 12px 0 20px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.badge-card { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; background: var(--paper); }
+.badge-card.earned { background: #eef9f4; border-color: var(--ok); }
+.badge-card.locked { opacity: .62; }
+.badge-icon { font-size: 1.5rem; line-height: 1; }
+.badge-card p { margin: 2px 0 0; font-size: .85rem; color: var(--muted); }
+.xp-events { list-style: none; margin: 10px 0 0; padding: 0; }
+.xp-events li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .92rem; }
+.xp-delta { background: #dcf3ea; color: var(--ok); font-weight: 700; padding: 2px 8px; border-radius: 999px; font-size: .82rem; }
+.xp-desc { flex: 1; min-width: 180px; }
+tr.is-me { background: #fffbe6; }
+.admin-config-form { margin: 16px 0; max-width: 720px; }
+.admin-config-form textarea { font: inherit; width: 100%; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: var(--radius); resize: vertical; }
+.admin-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.admin-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; align-items: center; }
+.agent-tools-fieldset { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; }
+.agent-tools-fieldset legend { font-weight: 600; padding: 0 6px; }
+.agent-tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 6px; }
+.agent-tools-grid label.check { margin: 4px 0; }

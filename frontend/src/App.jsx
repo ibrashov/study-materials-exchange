@@ -3,11 +3,13 @@ import HomePage from './pages/HomePage';
 import AuthForm from './features/auth/AuthForm';
 import SecurityPage from './features/auth/SecurityPage';
 import Materials from './features/materials/MaterialsPage';
+import TrashPage from './features/materials/TrashPage';
 import UploadForm from './features/materials/UploadForm';
+import GamificationPage from './features/gamification/GamificationPage';
 import AdminPage from './features/admin/AdminPage';
 import ChatWidget from './features/chat/ChatWidget';
 import { createTranslator, pickLanguage } from './locales/messages';
-const pages = ['home', 'materials', 'registration', 'login', 'upload', 'security', 'admin'];
+const pages = ['home', 'materials', 'leaderboard', 'registration', 'login', 'upload', 'trash', 'security', 'admin'];
 const languages = [['en', 'EN'], ['ru', 'RU'], ['kk', 'ҚАЗ']];
 const currentPage = () => pages.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
 const LANGUAGE_KEY = 'sme-language';
@@ -34,16 +36,24 @@ export default function App() {
   }, [page]);
   const navigate = name => { location.hash = name; setPage(name); };
   const search = filters => { setPreset({ q: '', categoryId: '', courseId: '', ...filters }); navigate('materials'); };
+  const visiblePages = pages.filter(name => {
+    if (name === 'admin') return session?.user.role === 'admin';
+    if (name === 'security' || name === 'trash') return Boolean(session);
+    if (['login', 'registration'].includes(name)) return !session;
+    return true;
+  });
   return <div className="shell"><a className="skip-link" href="#main" onClick={event => { event.preventDefault(); mainRef.current?.focus(); }}>{t('skip')}</a><header><a href="#home" className="brand"><span className="brand-mark" aria-hidden="true">SM</span>Study Materials Exchange</a>
     <div className="account"><span className="who">{session?.user.full_name}</span><label className="language">{t('language')}<select value={language} onChange={e => setLanguage(e.target.value)}>{languages.map(([code, label]) => <option key={code} value={code}>{label}</option>)}</select></label></div></header>
-    <nav aria-label="Main navigation">{pages.filter(name => name === 'admin' ? session?.user.role === 'admin' : name === 'security' ? Boolean(session) : !session || !['login', 'registration'].includes(name)).map(name =>
+    <nav aria-label="Main navigation">{visiblePages.map(name =>
       <button key={name} aria-current={page === name ? 'page' : undefined} onClick={() => navigate(name)}>{t(name)}</button>)}
       {session && <button className="quiet" onClick={() => { setSession(null); navigate('home'); }}>{t('logout')}</button>}
     </nav><main ref={mainRef} tabIndex={-1}>
       {page === 'home' && <HomePage t={t} session={session} onSearch={search} onNavigate={navigate}/>}
       {page === 'materials' && <Materials key={JSON.stringify(preset)} preset={preset} t={t} session={session}/>}
+      {page === 'leaderboard' && <GamificationPage t={t} session={session}/>}
       {['login', 'registration'].includes(page) && <AuthForm key={page} mode={page} t={t} onLogin={value => { setSession(value); navigate('home'); }}/>}
       {page === 'upload' && <UploadForm t={t} session={session}/>}
+      {page === 'trash' && <TrashPage t={t} session={session}/>}
       {page === 'security' && <SecurityPage t={t} session={session} onChange={user => setSession(current => ({ ...current, user }))}/>}
       {page === 'admin' && <AdminPage t={t} session={session}/>}
     </main><ChatWidget t={t} session={session}/><footer>{t('footer')}</footer></div>;

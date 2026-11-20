@@ -2,6 +2,8 @@ import React from 'react';
 import { getCourseReport, getDownloadReport, getOverview, getStorageCheck } from '../../api/client';
 import { useRequest } from '../materials/useRequest';
 import AdminPanel from './AdminPanel';
+import AgentConfigPanel from './AgentConfigPanel';
+import BackupSchedulePanel from './BackupSchedulePanel';
 import TaxonomyForms from './TaxonomyForms';
 import UserManagement from './UserManagement';
 import './admin.css';
@@ -40,6 +42,8 @@ function Dashboard({ session, t }) {
           <div><dt>{t('admin.missing')}</dt><dd>{data.missing_files}</dd></div></dl>
         {!clean && <p className="admin-help">{t('admin.storageHelp')}</p>}</>;
     }}</AdminPanel>
+    <BackupSchedulePanel token={token} t={t}/>
+    <AgentConfigPanel token={token} t={t}/>
   </section>;
 }
 

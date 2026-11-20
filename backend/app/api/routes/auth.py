@@ -7,7 +7,7 @@ from ...models.entities import User
 from ...schemas.auth import (LoginRequest, RegisterRequest, UserResponse, TokenResponse,
                              TwoFactorSetup, TwoFactorCode, TwoFactorDisable, TwoFactorStatus)
 from ...core.config import settings
-from ...services import twofactor
+from ...services import gamification, twofactor
 from ...services.auth import hasher, verify_password, create_token, DUMMY_HASH
 from ..dependencies import current_user
 
@@ -67,6 +67,7 @@ def twofa_enable(body: TwoFactorCode, user: User = Depends(current_user), db: Se
     if not user.totp_secret or not twofactor.verify_code(twofactor.decrypt(user.totp_secret), body.code):
         raise HTTPException(401, 'otp_invalid')
     user.totp_enabled = True
+    gamification.award_xp(db, user, 'enable_2fa', 'Enabled two-factor authentication', once_ever=True)
     db.commit()
     return TwoFactorStatus(enabled=True)
 
