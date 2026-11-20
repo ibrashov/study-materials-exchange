@@ -141,6 +141,7 @@ export const updateAdminAgentConfig = (body, token) => request('/admin/agent', {
 // Gamification
 export const getMyGamification = (token, signal) => request('/gamification/me', { token, signal });
 export const getLeaderboard = (limit = 20, signal) => request('/gamification/leaderboard?limit=' + limit, { signal });
+export const getStudentProfile = (userId, token, signal) => request('/gamification/users/' + Number(userId), { token, signal });
 // Study assistant / AI Agent
 export const getChatStatus = token => request('/chat/status', { token });
 export const getChatAgentInfo = token => request('/chat/agent', { token });

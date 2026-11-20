@@ -98,7 +98,7 @@ def upload(title: str = Form(..., min_length=1, max_length=200), category_id: in
     try:
         db.add(material)
         db.flush()
-        gamification.award_xp(db, user, 'upload_material', f'Uploaded "{title}"')
+        gamification.award_xp(db, user, 'upload_material', f'Uploaded "{title}"', material_id=material.material_id)
         # Validate the public response before commit, so failures can still be rolled back.
         response = MaterialResponse.model_validate(material)
         db.commit()
@@ -119,11 +119,7 @@ def download(material_id: int = Path(..., gt=0), user: User = Depends(current_us
     data = download_stored(material.file_path)
     db.execute(update(Material).where(Material.material_id == material_id)
                .values(download_count=Material.download_count + 1))
-    gamification.award_xp(db, user, 'download_material', f'Downloaded "{material.title}"')
-    if material.uploader_id != user.user_id:
-        uploader = db.get(User, material.uploader_id)
-        if uploader is not None:
-            gamification.award_xp(db, uploader, 'received_download', f'Download received on "{material.title}"')
+    gamification.reward_download(db, user, material)
     db.commit()
     headers = {'X-Content-Type-Options': 'nosniff'}
     if isinstance(data, bytes):
@@ -141,6 +137,7 @@ def move_to_trash(material_id: int = Path(..., gt=0), user: User = Depends(curre
         raise HTTPException(403, 'Only the uploader or an administrator can move this material to trash')
     material.deleted_at = datetime.now(timezone.utc)
     material.deleted_by_id = user.user_id
+    gamification.revoke_upload(db, material)
     db.commit()
     db.refresh(material)
     return material
@@ -155,6 +152,7 @@ def restore_from_trash(material_id: int = Path(..., gt=0), user: User = Depends(
         raise HTTPException(403, 'Only the uploader or an administrator can restore this material')
     material.deleted_at = None
     material.deleted_by_id = None
+    gamification.restore_upload(db, material)
     db.commit()
     db.refresh(material)
     return material
@@ -177,9 +175,11 @@ def delete_material(
             raise HTTPException(404, 'Material not found')
         material.deleted_at = datetime.now(timezone.utc)
         material.deleted_by_id = user.user_id
+        gamification.revoke_upload(db, material)
         db.commit()
         return
     name = material.file_path
+    gamification.revoke_upload(db, material)
     db.delete(material)
     db.commit()
     remove_stored(name)

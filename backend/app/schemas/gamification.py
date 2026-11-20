@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from pydantic import BaseModel, ConfigDict
 
 
@@ -15,6 +15,7 @@ class XpEventItem(BaseModel):
     action: str
     points: int
     description: str
+    material_title: str | None = None
     created_at: datetime
 
 
@@ -60,3 +61,51 @@ class BadgeCatalogItem(BaseModel):
 
 class BadgeCatalogResponse(BaseModel):
     items: list[BadgeCatalogItem]
+
+
+class XpSource(BaseModel):
+    source: str
+    xp: int
+
+
+class ActivityDay(BaseModel):
+    date: date
+    xp: int
+    actions: int
+
+
+class ProfileUpload(BaseModel):
+    material_id: int
+    title: str
+    download_count: int
+    uploaded_at: datetime
+    course_code: str
+    course_name: str
+    category_name: str
+
+
+class PublicProfile(BaseModel):
+    user_id: int
+    full_name: str
+    is_self: bool
+    rank: int | None
+    xp_points: int
+    level: int
+    level_code: str
+    current_level_xp: int
+    next_level_xp: int | None
+    progress_percent: int
+    current_streak: int
+    longest_streak: int
+    last_active_on: date | None
+    materials_count: int
+    total_downloads_received: int
+    students_reached: int
+    materials_studied: int
+    badges: list[BadgeItem]
+    xp_breakdown: list[XpSource]
+    activity_days: list[ActivityDay]
+    activity_window_days: int
+    today: date
+    uploads: list[ProfileUpload]
+    recent_events: list[XpEventItem]
