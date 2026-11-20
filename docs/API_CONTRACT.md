@@ -53,6 +53,16 @@ All routes under /api/admin require an admin: 401 guest or invalid token, 403 st
 
 **GET /api/health** — unchanged, public, 200 {"status":"ok","service":"study-materials-backend"}. API availability only, not database readiness. Unknown route 404; unsupported method 405. OpenAPI at /openapi.json and interactive docs at /docs.
 
+## Gamification
+
+**GET /api/gamification/me** — authenticated. XP, level, streak, badges and the last 15 XP events (each with action, signed points, description and material_title when the material still exists).
+
+**GET /api/gamification/leaderboard** — public. limit 1–50 (default 20). Active students with more than 0 XP, highest XP first; administrators are not ranked. No email or other private fields.
+
+**GET /api/gamification/users/{user_id}** — public (a Bearer token is optional; an invalid one is treated as anonymous). Profile of an active student: rank, level and XP, streaks, badges with dates, XP by source, activity per day for the last 84 days, uploaded materials (20 newest) and the last 30 XP events. 404 for admins, blocked or missing users; 422 for an invalid ID. The owner (is_self=true) also sees private details; everyone else does not see the 2FA badge, the 2FA event or the titles of materials the student downloaded.
+
+**XP rules.** Upload +50; downloading another student's material +5 to the student and +10 to the uploader, once per student and material (repeat downloads, own materials and admin downloads earn nothing); enabling 2FA +25 once; AI study session +5 once per day. Moving a material to Trash or deleting it takes its upload XP back (an `upload_revoked` event with negative points); restoring it pays the XP again. Days for streaks and daily limits are local study days (GAMIFICATION_UTC_OFFSET_HOURS, default 5); a streak not continued yesterday is shown as 0. Migration 0006 credits uploads and 2FA made before gamification existed and recomputes XP as the sum of each user's XP events.
+
 ## Tested and future scope
 
 Executed PostgreSQL tests cover registration persistence/hash/duplicate/validation, role restrictions, current-role recheck, invalid/expired/forged tokens, real counts, taxonomy, file validation/size/cleanup, FK/PK constraints, search, download and CORS. Browser tests exercise client integration, translation, network errors and the complete workflow. Exact-size counting and simulated DB failure use targeted mocks; no test labeled PostgreSQL substitutes SQLite.

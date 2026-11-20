@@ -39,5 +39,7 @@ class Settings(BaseSettings):
     chatbot_tools_enabled: bool = True
     chatbot_max_tool_steps: int = Field(default=4, ge=1, le=8)
     chatbot_system_prompt: str = ''
+    # Gamification: streaks and daily limits follow the local study day (Kazakhstan is UTC+5 all year)
+    gamification_utc_offset_hours: int = Field(default=5, ge=-12, le=14)
 
 settings = Settings()

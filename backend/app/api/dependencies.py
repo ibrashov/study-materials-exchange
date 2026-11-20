@@ -17,6 +17,15 @@ def current_user(credentials: HTTPAuthorizationCredentials | None = Depends(bear
         raise HTTPException(403, 'Account is disabled')
     return user
 
+def optional_user(credentials: HTTPAuthorizationCredentials | None = Depends(bearer), db: Session = Depends(get_db)):
+    """The signed-in user when a valid token is sent, otherwise None (for public pages)."""
+    if credentials is None:
+        return None
+    try:
+        return current_user(credentials, db)
+    except HTTPException:
+        return None  # an expired or invalid token only means "anonymous" on a public page
+
 def require_student(user: User = Depends(current_user)):
     if user.role != 'student':
         raise HTTPException(403, 'Student role required')
