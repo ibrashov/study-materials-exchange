@@ -32,6 +32,10 @@ frontend/test-results/
 
 # Week 12 ML moderation large generated/experimental artifacts (reproducible via scripts)
 ml_moderation/datasets/generated/
+/ml_moderation/datasets/course_contexts_v2.json
+/ml_moderation/datasets/phase[23]_*.txt
+/ml_moderation/reports/week13/**/*.csv
+/ml_moderation/reports/week13/**/*.png
 ml_moderation/reports/experimental_models/
 ml_moderation/reports/sklearn_results.json
 ml_moderation/reports/char_cnn_results.json
