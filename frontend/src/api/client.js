@@ -139,6 +139,7 @@ export const runAdminBackup = token => request('/admin/backups/run', { method: '
 // Gamification
 export const getMyGamification = (token, signal) => request('/gamification/me', { token, signal });
 export const getLeaderboard = (limit = 20, signal) => request('/gamification/leaderboard?limit=' + limit, { signal });
+export const getStudentProfile = (userId, token, signal) => request('/gamification/users/' + Number(userId), { token, signal });
 // Study assistant chatbot
 export const getChatStatus = token => request('/chat/status', { token });
 export const sendChat = (messages, token) => request('/chat', { method: 'POST', body: { messages }, token });

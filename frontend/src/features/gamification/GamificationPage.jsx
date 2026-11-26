@@ -3,6 +3,7 @@ import { getLeaderboard, getMyGamification } from '../../api/client';
 import { errorKey } from '../../locales/messages';
 import { formatUploadedAt } from '../materials/format';
 import { useRequest } from '../materials/useRequest';
+import { eventText, formatPoints } from './format';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
@@ -18,7 +19,10 @@ export default function GamificationPage({ session, t }) {
     <p className="intro">{t('gamification.intro')}</p>
 
     {session && <div className="gami-card">
-      <h2>{t('gamification.myProgress')}</h2>
+      <div className="gami-card-head">
+        <h2>{t('gamification.myProgress')}</h2>
+        {session.user.role === 'student' && <a href={`#profile/${session.user.user_id}`}>{t('gamification.myProfile')}</a>}
+      </div>
       {profile.status === 'error' ? <div role="alert"><p>{t(errorKey(profile.error))}</p><button onClick={profile.retry}>{t('retry')}</button></div>
         : !me ? <p>{t('loading')}</p> : <>
           <div className="gami-hero">
@@ -35,7 +39,7 @@ export default function GamificationPage({ session, t }) {
               </span>
             </div>
           </div>
-          <div className="gami-progress-track" role="progressbar" aria-valuenow={me.progress_percent} aria-valuemin={0} aria-valuemax={100}>
+          <div className="gami-progress-track" role="progressbar" aria-label={t('gamification.levelLabel', { count: me.level })} aria-valuenow={me.progress_percent} aria-valuemin={0} aria-valuemax={100}>
             <div className="gami-progress-fill" style={{ width: `${me.progress_percent}%` }}/>
           </div>
           <dl className="gami-stats">
@@ -60,8 +64,8 @@ export default function GamificationPage({ session, t }) {
             <h3>{t('gamification.recentActivity')}</h3>
             <ul className="xp-events">
               {me.recent_events.slice(0, 8).map(ev => <li key={ev.event_id}>
-                <span className="xp-delta">+{ev.points}</span>
-                <span className="xp-desc">{ev.description}</span>
+                <span className={ev.points < 0 ? 'xp-delta negative' : 'xp-delta'}>{formatPoints(ev.points)}</span>
+                <span className="xp-desc">{eventText(ev, t)}</span>
                 <span className="muted">{formatUploadedAt(ev.created_at, t)}</span>
               </li>)}
             </ul>
@@ -90,7 +94,7 @@ export default function GamificationPage({ session, t }) {
                 <tbody>
                   {board.data.items.map(row => <tr key={row.user_id} className={session?.user.user_id === row.user_id ? 'is-me' : undefined}>
                     <td>{MEDALS[row.rank - 1] || row.rank}</td>
-                    <td><strong>{row.full_name}</strong></td>
+                    <td><a className="profile-link" href={`#profile/${row.user_id}`} title={t('gamification.viewProfile', { title: row.full_name })}>{row.full_name}</a></td>
                     <td>{t(`gamification.rank.${row.level_code}`)}</td>
                     <td><strong>{row.xp_points}</strong></td>
                     <td>{row.materials_count}</td>

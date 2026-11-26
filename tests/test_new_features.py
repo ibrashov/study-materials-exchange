@@ -77,35 +77,48 @@ class GamificationTests(PostgresCase):
         earned_one = {b['code'] for b in p1['badges'] if b['earned']}
         self.assertIn('first_upload', earned_one)
 
-        # Student Two downloads Student One's material 3 times -> +15 XP to Two (curious_learner), +30 XP to One
+        # Student Two downloads the same material 3 times -> XP only once: +5 to Two, +10 to One (no farming)
         for _ in range(3):
             self.assertEqual(self.client.get(f'/api/materials/{mid}/download', headers=self.two).status_code, 200)
+        # Downloading your own material earns nothing
+        self.assertEqual(self.client.get(f'/api/materials/{mid}/download', headers=self.one).status_code, 200)
 
         p2 = self.client.get('/api/gamification/me', headers=self.two).json()
-        self.assertEqual(p2['xp_points'], 15)
-        self.assertIn('curious_learner', {b['code'] for b in p2['badges'] if b['earned']})
+        self.assertEqual(p2['xp_points'], 5)
+        self.assertNotIn('curious_learner', {b['code'] for b in p2['badges'] if b['earned']})
+        p1 = self.client.get('/api/gamification/me', headers=self.one).json()
+        self.assertEqual(p1['xp_points'], 60)
+        self.assertEqual(p1['total_downloads_received'], 4)
 
-        # Student One enables 2FA -> +25 XP + security_champion badge (total 50 + 30 + 25 = 105 XP)
+        # Student One enables 2FA -> +25 XP + security_champion badge (60 + 25 = 85 XP)
         setup = self.client.post('/api/auth/2fa/setup', headers=self.one).json()
         code = pyotp.TOTP(setup['secret']).now()
         self.assertEqual(self.client.post('/api/auth/2fa/enable', headers=self.one, json={'code': code}).status_code, 200)
 
         p1_after = self.client.get('/api/gamification/me', headers=self.one).json()
-        self.assertEqual(p1_after['xp_points'], 105)
+        self.assertEqual(p1_after['xp_points'], 85)
         self.assertIn('security_champion', {b['code'] for b in p1_after['badges'] if b['earned']})
 
-        # Upload 1 more material -> +50 XP => 155 XP (level 3 scholar + rising_star badge!)
-        self.upload(headers=self.one, title='Algorithms Lab')
+        # Upload 2 more materials -> +100 XP => 185 XP (level 3 scholar + rising_star badge!)
+        lab = self.upload(headers=self.one, title='Algorithms Lab').json()['material_id']
+        exam = self.upload(headers=self.one, title='Algorithms Exam').json()['material_id']
         p1_scholar = self.client.get('/api/gamification/me', headers=self.one).json()
-        self.assertEqual(p1_scholar['xp_points'], 155)
+        self.assertEqual(p1_scholar['xp_points'], 185)
         self.assertEqual(p1_scholar['level'], 3)
         self.assertEqual(p1_scholar['level_code'], 'scholar')
         self.assertIn('rising_star', {b['code'] for b in p1_scholar['badges'] if b['earned']})
 
+        # Student Two downloads 2 new materials -> 3 distinct downloads: 15 XP and curious_learner; One +20
+        for other in (lab, exam):
+            self.assertEqual(self.client.get(f'/api/materials/{other}/download', headers=self.two).status_code, 200)
+        p2 = self.client.get('/api/gamification/me', headers=self.two).json()
+        self.assertEqual(p2['xp_points'], 15)
+        self.assertIn('curious_learner', {b['code'] for b in p2['badges'] if b['earned']})
+
         # Public leaderboard ranks Student One first and exposes no private fields
         board = self.client.get('/api/gamification/leaderboard').json()['items']
         self.assertEqual(board[0]['full_name'], 'Student One')
-        self.assertEqual(board[0]['xp_points'], 155)
+        self.assertEqual(board[0]['xp_points'], 205)
         self.assertEqual(board[1]['full_name'], 'Student Two')
         self.assertNotIn('email', board[0])
 

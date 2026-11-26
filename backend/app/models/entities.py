@@ -67,11 +67,14 @@ class Material(Base):
 
 class XpEvent(Base):
     __tablename__ = 'xp_events'
+    __table_args__ = (Index('ix_xp_events_user_action_material', 'user_id', 'action', 'material_id'),)
     event_id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True)
     action: Mapped[str] = mapped_column(String(50))
     points: Mapped[int] = mapped_column(Integer)
     description: Mapped[str] = mapped_column(String(200))
+    # Set for download XP so a student earns it once per material, not on every repeat download.
+    material_id: Mapped[int | None] = mapped_column(ForeignKey('materials.material_id', ondelete='SET NULL'))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 class UserBadge(Base):

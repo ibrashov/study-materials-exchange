@@ -34,5 +34,7 @@ class Settings(BaseSettings):
     gemini_fallback_model: str = 'gemini-3.1-flash-lite'
     chatbot_max_tokens: int = Field(default=800, ge=64, le=4000)
     chatbot_temperature: float = Field(default=0.3, ge=0.0, le=1.0)
+    # Gamification: streaks and daily limits follow the local study day (Kazakhstan is UTC+5 all year)
+    gamification_utc_offset_hours: int = Field(default=5, ge=-12, le=14)
 
 settings = Settings()
