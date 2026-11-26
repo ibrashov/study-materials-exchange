@@ -123,6 +123,23 @@ Stop application servers with Ctrl+C. Stop the optional project database with:
 .\.venv\Scripts\python.exe scripts/local_postgres.py stop
 ~~~
 
+## Material title validation (Week 13)
+
+The upload route can check whether the title is meaningful and relevant to the
+selected course. Set `MATERIAL_VALIDATOR_V2_ENABLED=true` to enable it in a
+local environment. The Week 12 profanity checks remain active for the title
+and filename. See [the Week 13 report](WEEK13_ML_REPORT.md) for training,
+evaluation and demo commands.
+
+The optional `MATERIAL_VALIDATOR_V2_MODEL=minilm_preview` setting is for local
+experiments with the downloaded INT8 encoder. The default selection is
+`v2_0`. The validation feature remains off unless explicitly enabled.
+
+For the lightweight Week 13 Phase 3 experiment, select
+`MATERIAL_VALIDATOR_V2_MODEL=v2_2`. Its default mode is `shadow`, which
+records decisions without changing the upload result. The settings and
+evaluation results are documented in the Week 13 report.
+
 ## Verification
 
 Run Python tests before browser tests; both use the separate test database. Python tests truncate the four canonical tables in that database. Do not run them concurrently with a browser demo using that database.
