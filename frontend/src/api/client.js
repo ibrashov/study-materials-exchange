@@ -136,17 +136,10 @@ export const getAdminBackups = (token, signal) => request('/admin/backups', { to
 export const updateBackupSchedule = (body, token) => request('/admin/backups/schedule', { method: 'PATCH', body, token });
 export const runAdminBackup = token => request('/admin/backups/run', { method: 'POST', token });
 // AI Agent configuration (admin)
-export const getAdminAgentConfig = (token, signal) => request('/admin/agent', { token, signal });
-export const updateAdminAgentConfig = (body, token) => request('/admin/agent', { method: 'PATCH', body, token });
 // Gamification
 export const getMyGamification = (token, signal) => request('/gamification/me', { token, signal });
 export const getLeaderboard = (limit = 20, signal) => request('/gamification/leaderboard?limit=' + limit, { signal });
 export const getStudentProfile = (userId, token, signal) => request('/gamification/users/' + Number(userId), { token, signal });
-// Study assistant / AI Agent
+// Study assistant chatbot
 export const getChatStatus = token => request('/chat/status', { token });
-export const getChatAgentInfo = token => request('/chat/agent', { token });
-export const sendChat = (messages, token, includeMeta = false) => request('/chat', {
-  method: 'POST',
-  body: includeMeta ? { messages, include_meta: true } : { messages },
-  token,
-});
+export const sendChat = (messages, token) => request('/chat', { method: 'POST', body: { messages }, token });

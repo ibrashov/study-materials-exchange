@@ -8,8 +8,6 @@ from ...models.entities import Category, Course, Material, User
 from ...schemas.admin import (
     AdminUser,
     AdminUserList,
-    AgentConfigResponse,
-    AgentConfigUpdate,
     BackupItem,
     BackupListResponse,
     BackupScheduleStatus,
@@ -22,7 +20,7 @@ from ...schemas.admin import (
     UserChange,
 )
 from ...schemas.materials import CategoryResponse, CourseResponse
-from ...services import backup, backup_scheduler, chatbot
+from ...services import backup, backup_scheduler
 from ...services.reconcile import scan
 from ..dependencies import require_admin
 
@@ -152,34 +150,3 @@ def run_backup_now(db: Session = Depends(get_db)):
         return backup_scheduler.scheduler.run_now(db_url=bind_url, keep=cfg['keep'])
     except backup.BackupError as error:
         raise HTTPException(503, str(error)) from None
-
-
-# --- AI Agent Configuration ---
-
-@router.get('/agent', response_model=AgentConfigResponse)
-def get_agent_config(db: Session = Depends(get_db)):
-    cfg = chatbot.load_agent_config(db)
-    return {
-        'api_key_configured': chatbot.enabled(),
-        'provider': chatbot.active_provider() or 'none',
-        **cfg,
-        'default_system_prompt': chatbot.DEFAULT_SYSTEM_PROMPT,
-        'available_tools': list(chatbot.ALL_TOOL_NAMES),
-    }
-
-
-@router.patch('/agent', response_model=AgentConfigResponse)
-def update_agent_config(body: AgentConfigUpdate, db: Session = Depends(get_db)):
-    updates = body.model_dump(exclude_none=True)
-    if 'enabled_tools' in updates:
-        unknown = [t for t in updates['enabled_tools'] if t not in chatbot.TOOL_DEFINITIONS]
-        if unknown:
-            raise HTTPException(422, f'Unknown agent tools: {", ".join(unknown)}')
-    cfg = chatbot.save_agent_config(db, updates)
-    return {
-        'api_key_configured': chatbot.enabled(),
-        'provider': chatbot.active_provider() or 'none',
-        **cfg,
-        'default_system_prompt': chatbot.DEFAULT_SYSTEM_PROMPT,
-        'available_tools': list(chatbot.ALL_TOOL_NAMES),
-    }

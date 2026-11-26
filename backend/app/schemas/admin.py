@@ -94,26 +94,3 @@ class BackupScheduleUpdate(BaseModel):
     interval_hours: int | None = Field(default=None, ge=1, le=720)
     hour_utc: int | None = Field(default=None, ge=0, le=23)
     keep: int | None = Field(default=None, ge=1, le=365)
-
-class AgentConfigResponse(BaseModel):
-    api_key_configured: bool
-    provider: str
-    model: str
-    max_tokens: int
-    temperature: float
-    tools_enabled: bool
-    max_tool_steps: int
-    system_prompt: str
-    default_system_prompt: str
-    enabled_tools: list[str]
-    available_tools: list[str]
-
-class AgentConfigUpdate(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-    model: str | None = Field(default=None, min_length=1, max_length=100)
-    max_tokens: int | None = Field(default=None, ge=64, le=4000)
-    temperature: float | None = Field(default=None, ge=0.0, le=1.0)
-    tools_enabled: bool | None = None
-    max_tool_steps: int | None = Field(default=None, ge=1, le=8)
-    system_prompt: str | None = Field(default=None, max_length=4000)
-    enabled_tools: list[str] | None = None
