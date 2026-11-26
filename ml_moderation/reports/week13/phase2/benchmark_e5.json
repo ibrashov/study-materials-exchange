@@ -1,0 +1,30 @@
+{
+  "model": "e5",
+  "pid": 10784,
+  "routes": 38,
+  "rss_bytes": {
+    "app_imported": 120074240,
+    "v2_0_loaded": 125800448,
+    "loaded": 561938432,
+    "after_requests": 562528256,
+    "peak": 562741248
+  },
+  "first_inference_ms": 15.638200100511312,
+  "cold_from_before_model_load_ms": 2045.8544000284746,
+  "v2_0_initialization_ms": 164.21150008682162,
+  "p50_ms": 10.265949997119606,
+  "p95_ms": 15.56741496315226,
+  "concurrent_p95_ms": 19.347410037880763,
+  "concurrent_per_second": 289.77485947121613,
+  "mean_cpu_core_equivalents": 1.9915734818513162,
+  "direct_dependencies": {
+    "onnxruntime": {
+      "version": "1.32.0",
+      "installed_bytes": 50546288
+    },
+    "tokenizers": {
+      "version": "0.23.3",
+      "installed_bytes": 8238865
+    }
+  }
+}

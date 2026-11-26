@@ -17,6 +17,7 @@ from ...schemas.materials import (
 )
 from ...services import gamification
 from ...services.moderation import enforce_material_moderation
+from ...services.title_validation import enforce_title_validation
 from ...services.storage import download_stored, remove_stored, save_pdf
 from ..dependencies import current_user, require_student
 
@@ -89,9 +90,13 @@ def upload(title: str = Form(..., min_length=1, max_length=200), category_id: in
            course_id: int = Form(..., gt=0), file: UploadFile = File(...),
            user: User = Depends(require_student), db: Session = Depends(get_db)):
     title = title.strip()
-    if not title or not db.get(Category, category_id) or not db.get(Course, course_id):
+    if not title or not db.get(Category, category_id):
+        raise HTTPException(422, 'Provide a title and existing category and course')
+    course = db.get(Course, course_id)
+    if course is None:
         raise HTTPException(422, 'Provide a title and existing category and course')
     enforce_material_moderation(title=title, filename=file.filename)
+    enforce_title_validation(title, course)
     name, size = save_pdf(file)
     material = Material(title=title, uploader_id=user.user_id, category_id=category_id,
                         course_id=course_id, file_path=name, file_size_bytes=size)
