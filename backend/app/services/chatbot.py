@@ -1,6 +1,6 @@
 """Study assistant chatbot powered by Google Gemini.
 
-One API key, one fixed prompt, no tools and no admin configuration.
+One API key, one fixed prompt and read-only database tools (see chat_tools.py) for signed-in users.
 Set GEMINI_API_KEY in backend/.env (key from https://aistudio.google.com/apikey).
 Without a key the feature stays switched off and the frontend hides the chat window.
 """
@@ -12,16 +12,21 @@ from sqlalchemy.orm import Session
 
 from ..core.config import settings
 from ..models.entities import User
-from . import gamification
+from . import chat_tools, gamification
 
 log = logging.getLogger(__name__)
+
+MAX_TOOL_ROUNDS = 4
 
 API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent'
 
 SYSTEM_PROMPT = (
     'You are the AI Study Assistant for Study Materials Exchange, a university platform where students '
     'share course notes as PDF files. Help with studying: explain concepts, summarize topics, and plan revision. '
-    'Keep answers short and clear. Answer in the language the user writes in.'
+    'Keep answers short and clear. Answer in the language the user writes in. '
+    'You can query the platform database with tools: use them when the user asks what materials, courses or '
+    'categories exist. Only state facts that tool results show, and say so when nothing matches. '
+    'You cannot see or change user accounts, emails or files.'
 )
 
 
@@ -50,15 +55,51 @@ def ask(messages: list[dict], *, db: Session | None = None, user: User | None = 
         for m in conversation
     ]
 
-    body = {
-        'systemInstruction': {'parts': [{'text': SYSTEM_PROMPT}]},
-        'contents': contents,
-        'generationConfig': {
-            'maxOutputTokens': settings.chatbot_max_tokens,
-            'temperature': settings.chatbot_temperature,
-            'thinkingConfig': {'thinkingLevel': 'minimal'},  # fast replies; deep thinking made answers take 30-60 s
-        },
-    }
+    use_tools = db is not None and settings.chatbot_tools_enabled
+    reply = ''
+    for _round in range(MAX_TOOL_ROUNDS + 1):
+        body = {
+            'systemInstruction': {'parts': [{'text': SYSTEM_PROMPT}]},
+            'contents': contents,
+            'generationConfig': {
+                'maxOutputTokens': settings.chatbot_max_tokens,
+                'temperature': settings.chatbot_temperature,
+                'thinkingConfig': {'thinkingLevel': 'minimal'},  # fast replies; deep thinking made answers take 30-60 s
+            },
+        }
+        if use_tools:
+            body['tools'] = [{'functionDeclarations': chat_tools.FUNCTION_DECLARATIONS}]
+        parts = _generate(body)
+        calls = [part['functionCall'] for part in parts if 'functionCall' in part]
+        if not calls or not use_tools or _round == MAX_TOOL_ROUNDS:
+            reply = ''.join(part.get('text', '') for part in parts).strip() or 'No answer was returned.'
+            break
+        # Keep the model's function-call turn, answer each call with a result, then ask again.
+        contents.append({'role': 'model', 'parts': parts})
+        contents.append({'role': 'user', 'parts': [
+            {'functionResponse': {'name': call.get('name', ''),
+                                  'response': chat_tools.run_tool(db, call.get('name', ''), call.get('args') or {})}}
+            for call in calls
+        ]})
+
+    # Award daily AI study session XP when running with a real DB user.
+    if db is not None and user is not None and hasattr(user, 'user_id'):
+        try:
+            db_user = db.get(User, user.user_id)
+            if db_user is not None:
+                awarded = gamification.award_xp(
+                    db, db_user, 'ai_study_session', 'Studied with AI Study Assistant', once_per_day=True
+                )
+                if awarded > 0:
+                    db.commit()
+        except Exception:
+            db.rollback()
+
+    return reply
+
+
+def _generate(body: dict) -> list[dict]:
+    """Call Gemini with retries and return the parts of the first candidate."""
     # Gemini often answers 503 "high demand": retry the main model 3 times, then try a lighter one twice.
     models = [settings.gemini_model] * 3 + [settings.gemini_fallback_model] * 2
     response = None
@@ -87,8 +128,7 @@ def ask(messages: list[dict], *, db: Session | None = None, user: User | None = 
         raise ChatbotError(503, 'The AI is busy right now, please try again in a moment')
 
     candidates = response.json().get('candidates') or []
-    parts = ((candidates[0].get('content') or {}).get('parts') or []) if candidates else []
-    reply = ''.join(part.get('text', '') for part in parts).strip() or 'No answer was returned.'
+    return ((candidates[0].get('content') or {}).get('parts') or []) if candidates else []
 
     # Award daily AI study session XP when running with a real DB user.
     if db is not None and user is not None and hasattr(user, 'user_id'):
