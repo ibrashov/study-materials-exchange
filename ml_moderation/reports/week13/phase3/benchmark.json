@@ -1,0 +1,15 @@
+{
+  "routes": 38,
+  "app_imported_rss_bytes": 120246272,
+  "app_imported_peak_bytes": 160411648,
+  "startup_peak_bytes": 160411648,
+  "all_models_loaded_rss_bytes": 128765952,
+  "final_rss_bytes": 128987136,
+  "peak_working_set_bytes": 160411648,
+  "cold_first_ms": 147.89869997184724,
+  "p50_ms": 1.78540003253147,
+  "p95_ms": 2.2957500186748803,
+  "concurrent_p95_ms": 7.411809958284721,
+  "concurrent_per_second": 706.5935184537128,
+  "mean_cpu_core_equivalents": 1.0650117238941914
+}

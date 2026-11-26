@@ -1,0 +1,18 @@
+{
+  "app_imported": {
+    "working_set_bytes": 115642368,
+    "peak_working_set_bytes": 150036480
+  },
+  "week12_loaded": {
+    "working_set_bytes": 121323520,
+    "peak_working_set_bytes": 150036480
+  },
+  "v2_first_call": {
+    "working_set_bytes": 121585664,
+    "peak_working_set_bytes": 150036480
+  },
+  "after_200": {
+    "working_set_bytes": 121626624,
+    "peak_working_set_bytes": 150036480
+  }
+}

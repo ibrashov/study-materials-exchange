@@ -1,0 +1,11 @@
+{
+  "cases": 27,
+  "correct": 23,
+  "first_cli_call_ms": 149.90369998849928,
+  "warm_p50_ms": 1.4865499688312411,
+  "warm_p95_ms": 2.5805349694564934,
+  "concurrent_requests_per_second": 722.3319764825081,
+  "concurrent_decisions": {
+    "ACCEPTED": 200
+  }
+}

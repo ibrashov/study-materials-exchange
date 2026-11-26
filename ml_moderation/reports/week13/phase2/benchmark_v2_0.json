@@ -1,0 +1,20 @@
+{
+  "model": "v2_0",
+  "pid": 26828,
+  "routes": 38,
+  "rss_bytes": {
+    "app_imported": 119250944,
+    "v2_0_loaded": 125857792,
+    "loaded": 125874176,
+    "after_requests": 125984768,
+    "peak": 163528704
+  },
+  "first_inference_ms": 2.003000001423061,
+  "cold_from_before_model_load_ms": 123.24730004183948,
+  "v2_0_initialization_ms": 121.17729999590665,
+  "p50_ms": 1.1479499517008662,
+  "p95_ms": 1.9649000256322322,
+  "concurrent_p95_ms": 8.675034943735227,
+  "concurrent_per_second": 586.1784968638299,
+  "mean_cpu_core_equivalents": 0.9525502952692128
+}
