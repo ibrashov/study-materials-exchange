@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { getMe, twoFactorSetup, twoFactorEnable, twoFactorDisable } from '../../api/client';
 import { errorKey } from '../../locales/messages';
 // Week 11: two-factor authentication (TOTP) management. Secrets live only in component state.
@@ -27,6 +28,10 @@ export default function SecurityPage({ session, t, onChange }) {
     {!enabled && !setup && <button className="primary" onClick={start} disabled={busy}>{t('enableTwoFactor')}</button>}
     {!enabled && setup && <form onSubmit={enable}>
       <p>{t('setupSteps')}</p>
+      <div className="qr-box">
+        <QRCodeSVG value={setup.otpauth_uri} size={180} level="M" title={t('scanQr')}/>
+        <p className="hint">{t('scanQr')}</p>
+      </div>
       <label>{t('secretKey')}<input readOnly value={setup.secret} onFocus={e => e.target.select()} className="mono"/></label>
       <div className="row"><button type="button" onClick={copy}>{t(copied ? 'copied' : 'copy')}</button></div>
       <label>{t('otpCode')}<input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={6} required disabled={busy}/></label>
