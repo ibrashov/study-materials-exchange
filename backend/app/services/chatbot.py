@@ -1,9 +1,11 @@
-"""Study assistant chatbot powered by Google Gemini.
+"""Study assistant chatbot powered by Inception Labs (Mercury) or Google Gemini.
 
-One API key, one fixed prompt and read-only database tools (see chat_tools.py) for signed-in users.
-Set GEMINI_API_KEY in backend/.env (key from https://aistudio.google.com/apikey).
+Supports both providers with read-only database tools (see chat_tools.py) for signed-in users:
+  - INCEPTION_API_KEY (https://platform.inceptionlabs.ai/dashboard/api-keys) -> Mercury (OpenAI-compatible)
+  - GEMINI_API_KEY (https://aistudio.google.com/apikey) -> Google Gemini
 Without a key the feature stays switched off and the frontend hides the chat window.
 """
+import json
 import logging
 import time
 
@@ -37,25 +39,163 @@ class ChatbotError(Exception):
         self.message = message
 
 
+def active_provider() -> str | None:
+    if settings.inception_api_key.strip():
+        return 'inception'
+    if settings.gemini_api_key.strip():
+        return 'gemini'
+    return None
+
+
 def enabled() -> bool:
-    return bool(settings.gemini_api_key.strip())
+    return active_provider() is not None
+
+
+def _lowercase_schema(schema: dict) -> dict:
+    out = {}
+    for key, value in schema.items():
+        if key == 'type' and isinstance(value, str):
+            out[key] = value.lower()
+        elif isinstance(value, dict):
+            out[key] = _lowercase_schema(value)
+        elif isinstance(value, list):
+            out[key] = [_lowercase_schema(item) if isinstance(item, dict) else item for item in value]
+        else:
+            out[key] = value
+    return out
+
+
+def _openai_tools() -> list[dict]:
+    return [
+        {
+            'type': 'function',
+            'function': {
+                'name': decl['name'],
+                'description': decl['description'],
+                'parameters': _lowercase_schema(decl['parameters']),
+            },
+        }
+        for decl in chat_tools.FUNCTION_DECLARATIONS
+    ]
 
 
 def ask(messages: list[dict], *, db: Session | None = None, user: User | None = None) -> str:
-    """Send the conversation to Gemini and return the text reply."""
-    if not enabled():
-        raise ChatbotError(503, 'Chatbot is not configured. Set GEMINI_API_KEY in backend/.env.')
+    """Send the conversation to the configured AI provider and return the text reply."""
+    provider = active_provider()
+    if provider is None:
+        raise ChatbotError(503, 'Chatbot is not configured. Set INCEPTION_API_KEY or GEMINI_API_KEY in backend/.env.')
 
-    # Gemini needs the conversation to start with a user turn and calls the assistant role "model".
     conversation = list(messages)
     while conversation and conversation[0]['role'] == 'assistant':
         conversation = conversation[1:]
+
+    use_tools = db is not None and settings.chatbot_tools_enabled
+    if provider == 'inception':
+        reply = _ask_inception(conversation, db=db, use_tools=use_tools)
+    else:
+        reply = _ask_gemini(conversation, db=db, use_tools=use_tools)
+
+    # Award daily AI study session XP when running with a real DB user.
+    if db is not None and user is not None and hasattr(user, 'user_id'):
+        try:
+            db_user = db.get(User, user.user_id)
+            if db_user is not None:
+                awarded = gamification.award_xp(
+                    db, db_user, 'ai_study_session', 'Studied with AI Study Assistant', once_per_day=True
+                )
+                if awarded > 0:
+                    db.commit()
+        except Exception:
+            db.rollback()
+
+    return reply
+
+
+def _ask_inception(conversation: list[dict], *, db: Session | None, use_tools: bool) -> str:
+    """OpenAI-compatible chat completions loop for Inception Labs Mercury models."""
+    openai_messages: list[dict] = [{'role': 'system', 'content': SYSTEM_PROMPT}, *conversation]
+    tools = _openai_tools() if use_tools else []
+    message: dict = {}
+
+    for _round in range(MAX_TOOL_ROUNDS + 1):
+        body: dict = {
+            'model': settings.inception_model,
+            'max_tokens': settings.chatbot_max_tokens,
+            'temperature': settings.chatbot_temperature,
+            'messages': openai_messages,
+        }
+        if tools:
+            body['tools'] = tools
+        message = _generate_inception(body)
+        tool_calls = message.get('tool_calls') or []
+        if not tool_calls or not use_tools or _round == MAX_TOOL_ROUNDS:
+            break
+        openai_messages.append({
+            'role': 'assistant',
+            'content': message.get('content') or '',
+            'tool_calls': tool_calls,
+        })
+        for call in tool_calls:
+            fn = call.get('function') or {}
+            tool_name = str(fn.get('name', ''))
+            raw_args = fn.get('arguments')
+            if isinstance(raw_args, str):
+                try:
+                    parsed_args = json.loads(raw_args) if raw_args.strip() else {}
+                except ValueError:
+                    parsed_args = {}
+            elif isinstance(raw_args, dict):
+                parsed_args = raw_args
+            else:
+                parsed_args = {}
+            result = chat_tools.run_tool(db, tool_name, parsed_args)
+            openai_messages.append({
+                'role': 'tool',
+                'tool_call_id': str(call.get('id', '')),
+                'content': json.dumps(result, ensure_ascii=False),
+            })
+
+    return str(message.get('content') or '').strip() or 'No answer was returned.'
+
+
+def _generate_inception(body: dict) -> dict:
+    url = f"{settings.inception_base_url.rstrip('/')}/chat/completions"
+    response = None
+    for attempt in range(3):
+        if attempt:
+            time.sleep(attempt)
+        try:
+            response = httpx.post(
+                url,
+                timeout=30,
+                headers={
+                    'Authorization': f'Bearer {settings.inception_api_key.strip()}',
+                    'Content-Type': 'application/json',
+                },
+                json=body,
+            )
+        except httpx.HTTPError as error:
+            log.warning('Inception Labs request failed: %s', type(error).__name__)
+            response = None
+            continue
+        if response.status_code not in (429, 500, 503):
+            break
+        log.warning('Inception Labs returned HTTP %s (attempt %s)', response.status_code, attempt + 1)
+    if response is None:
+        raise ChatbotError(503, 'Chatbot service is unreachable')
+    if response.status_code != 200:
+        log.warning('Inception Labs upstream returned HTTP %s', response.status_code)
+        raise ChatbotError(503, 'The AI is busy right now, please try again in a moment')
+    choices = response.json().get('choices') or []
+    return (choices[0].get('message') if choices else None) or {}
+
+
+def _ask_gemini(conversation: list[dict], *, db: Session | None, use_tools: bool) -> str:
+    """Send the conversation to Google Gemini with optional read-only function calling."""
     contents = [
         {'role': 'user' if m['role'] == 'user' else 'model', 'parts': [{'text': m['content']}]}
         for m in conversation
     ]
-
-    use_tools = db is not None and settings.chatbot_tools_enabled
     reply = ''
     for _round in range(MAX_TOOL_ROUNDS + 1):
         body = {
@@ -81,20 +221,6 @@ def ask(messages: list[dict], *, db: Session | None = None, user: User | None = 
                                   'response': chat_tools.run_tool(db, call.get('name', ''), call.get('args') or {})}}
             for call in calls
         ]})
-
-    # Award daily AI study session XP when running with a real DB user.
-    if db is not None and user is not None and hasattr(user, 'user_id'):
-        try:
-            db_user = db.get(User, user.user_id)
-            if db_user is not None:
-                awarded = gamification.award_xp(
-                    db, db_user, 'ai_study_session', 'Studied with AI Study Assistant', once_per_day=True
-                )
-                if awarded > 0:
-                    db.commit()
-        except Exception:
-            db.rollback()
-
     return reply
 
 
@@ -129,18 +255,3 @@ def _generate(body: dict) -> list[dict]:
 
     candidates = response.json().get('candidates') or []
     return ((candidates[0].get('content') or {}).get('parts') or []) if candidates else []
-
-    # Award daily AI study session XP when running with a real DB user.
-    if db is not None and user is not None and hasattr(user, 'user_id'):
-        try:
-            db_user = db.get(User, user.user_id)
-            if db_user is not None:
-                awarded = gamification.award_xp(
-                    db, db_user, 'ai_study_session', 'Studied with AI Study Assistant', once_per_day=True
-                )
-                if awarded > 0:
-                    db.commit()
-        except Exception:
-            db.rollback()
-
-    return reply

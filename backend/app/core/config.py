@@ -28,7 +28,10 @@ class Settings(BaseSettings):
     supabase_bucket: str = 'materials'
     # Week 12: ML filename moderation artifact path
     moderation_model_path: Path = ROOT / 'ml_moderation' / 'models' / 'filename_moderator.joblib'
-    # Study assistant chatbot (optional): Google Gemini
+    # Study assistant chatbot (optional): Inception Labs (INCEPTION_API_KEY) or Google Gemini (GEMINI_API_KEY)
+    inception_api_key: str = ''
+    inception_base_url: str = 'https://api.inceptionlabs.ai/v1'
+    inception_model: str = 'mercury-2'
     gemini_api_key: str = ''
     gemini_model: str = 'gemini-3.6-flash'
     gemini_fallback_model: str = 'gemini-3.1-flash-lite'
