@@ -1,26 +1,28 @@
 {
   "DB101": [
-    ["sql", "queries", "запросы", "сұраныстар", "joins"],
-    ["normalization", "нормализация", "қалыптандыру", "3nf"],
-    ["indexes", "indexing", "индексы", "индекстер", "b-tree", "postgresql"],
-    ["transactions", "acid", "транзакции", "транзакциялар"],
-    ["database", "databases", "баз данных", "деректер қорын", "деректер қоры", "бқ"],
-    ["foreign keys", "внешние ключи", "сыртқы кілттер", "er diagrams"]
+    ["sql", "queries", "query", "запрос", "сұраныс", "joins", "join", "subquery", "подзапрос", "select", "insert", "update", "delete", "group by", "stored procedure", "trigger", "триггер", "view", "представлени"],
+    ["normalization", "нормализац", "қалыптандыру", "1nf", "2nf", "3nf", "bcnf", "functional dependenc", "функциональн", "декомпозиц", "denormalization"],
+    ["index", "indexing", "индекс", "b-tree", "btree", "postgresql", "postgres", "mysql", "sqlite", "oracle", "mongodb", "nosql", "redis", "query optimization", "оптимизация запрос", "explain plan"],
+    ["transaction", "acid", "транзакц", "concurrency", "isolation level", "deadlock", "блокировк", "изоляц", "wal", "mvcc", "recovery", "восстановление бд"],
+    ["database", "databases", "dbms", "rdbms", "relational", "баз данных", "база данных", "базы данных", "субд", "деректер қоры", "деректер қорын", "дқбж", "бқ", "реляционн", "schema", "схема бд", "таблиц", "кестелер", "table", "tables", "data model", "моделирование данных"],
+    ["foreign key", "primary key", "composite key", "внешние ключ", "внешний ключ", "первичный ключ", "первичные ключ", "сыртқы кілт", "бастапқы кілт", "er diagram", "er-диаграмм", "erd", "entity relationship", "сущность-связь", "constraint", "ограничения целостности", "referential integrity"],
+    ["migration", "alembic", "orm", "sqlalchemy", "replication", "sharding", "репликац", "шардинг", "миграции бд", "backup", "pg_dump", "database design", "проектирование бд", "проектирование баз"]
   ],
   "PROG101": [
-    ["loops", "циклы", "циклдер"],
-    ["functions", "функции", "функциялар"],
-    ["arrays", "массивы", "массивтер"],
-    ["c++", "c#", "python", "programming", "программирование", "бағдарламалау"],
-    ["oop", "classes", "классы", "сыныптар"],
-    ["recursion", "рекурсия", "рекурсиялық", "xor", "sorting", "сортировка", "сұрыптау"]
+    ["loop", "loops", "цикл", "for loop", "while loop", "iteration", "итерац", "conditional", "if-else", "switch", "ветвлен", "шартты оператор", "control flow"],
+    ["function", "functions", "функци", "method", "метод", "parameter", "argument", "параметр", "lambda", "closure", "замыкани", "әдістер", "scope"],
+    ["array", "arrays", "массив", "list", "lists", "список", "списки", "string", "строк", "dictionary", "словар", "hash map", "linked list", "связный список", "stack", "стек", "queue", "очеред", "binary tree", "деревья", "graph", "графы", "data structure", "структуры данных", "деректер құрылым"],
+    ["c++", "c#", "python", "java", "javascript", "typescript", "golang", "rust", "programming", "программирован", "бағдарламалау", "coding", "compiler", "компилятор", "interpreter", "интерпретатор", "code", "кодтау"],
+    ["oop", "ооп", "class", "classes", "класс", "сынып", "object", "объект", "нысан", "inheritance", "наследован", "мұрагерлік", "polymorphism", "полиморфизм", "encapsulation", "инкапсуляц", "abstraction", "constructor", "конструктор", "interface"],
+    ["recursion", "рекурси", "xor", "sorting", "сортировк", "сұрыптау", "binary search", "бинарный поиск", "algorithm", "алгоритм", "quicksort", "mergesort", "dynamic programming", "динамическое программирован", "big-o", "complexity", "сложность алгоритм", "bitwise"],
+    ["variable", "variables", "переменн", "айнымалы", "data type", "типы данных", "деректер тип", "pointer", "указател", "memory", "память", "exception", "исключен", "debugging", "отладк", "unit test", "file i/o", "input output", "ввод-вывод"]
   ],
   "BIS101": [
-    ["information systems", "информационные системы", "ақпараттық жүйелер"],
-    ["erp", "enterprise resource planning", "планирование ресурсов", "ресурстарды жоспарлау"],
-    ["business processes", "бизнес-процессы", "бизнес үдерістері"],
-    ["decision support", "поддержка решений", "шешімдерді қолдау"],
-    ["system analysis", "системный анализ", "жүйелік талдау"],
-    ["information flow", "информационные потоки", "ақпарат ағындары"]
+    ["information system", "информационные систем", "информационная систем", "ақпараттық жүйе", "mis", "tps", "it infrastructure", "ит-инфраструктур", "information technology", "информационные технолог"],
+    ["erp", "crm", "scm", "enterprise resource planning", "enterprise system", "планирование ресурс", "ресурстарды жоспарлау", "корпоративные систем", "управление клиентами", "supply chain", "цепочка поставок", "sap", "1c"],
+    ["business process", "бизнес-процесс", "бизнес үдеріс", "bpm", "bpmn", "workflow", "process modeling", "моделирование процесс", "reengineering", "реинжиниринг", "value chain"],
+    ["decision support", "dss", "поддержка решен", "шешімдерді қолдау", "business intelligence", "бизнес-аналитик", "data warehouse", "хранилище данных", "olap", "kpi", "dashboard", "управленческие решен"],
+    ["system analysis", "системный анализ", "жүйелік талдау", "sdlc", "жизненный цикл", "requirements engineering", "анализ требован", "uml", "use case", "dfd", "enterprise architecture", "архитектура ис", "agile", "scrum", "project management", "управление проектами"],
+    ["information flow", "информационные поток", "ақпарат ағын", "digital transformation", "цифровая трансформац", "цифрлық трансформац", "e-commerce", "электронная коммерц", "e-government", "электронное правительств", "cloud computing", "облачные вычислен", "saas", "information security", "информационная безопасност", "ақпараттық қауіпсіздік", "data governance", "it strategy", "risk management"]
   ]
 }

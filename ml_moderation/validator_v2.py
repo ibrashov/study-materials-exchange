@@ -15,8 +15,10 @@ SHORT_TERMS = frozenset({
     "acid", "b-tree", "x2 + y2", "қмж", "бқ", "hello", "привет", "сәлем",
 })
 GENERIC = re.compile(
-    r"(?:(?:lecture|week|assignment|notes|presentation|лекция|неделя|задание|"
-    r"дәріс|апта|тапсырма|қмж)\s*\d*|(?:intro|introduction|overview|введение|кіріспе))",
+    r"(?:(?:lecture|week|assignment|notes|presentation|lab|homework|slides|seminar|practice|material|"
+    r"лекция|неделя|задание|конспект|презентация|лабораторная|практика|материал|"
+    r"дәріс|апта|тапсырма|қмж|слайд|зертханалық)\s*(?:#|№)?\s*\d*|"
+    r"(?:intro|introduction|overview|summary|введение|обзор|кіріспе|шолу))",
     re.I,
 )
 
@@ -62,9 +64,16 @@ def concepts(value):
     result = set()
     for code, groups in catalog().items():
         for index, aliases in enumerate(groups):
-            if any(re.search(r"(?<!\w)" + re.escape(alias) + r"(?!\w)", value)
-                   for alias in aliases):
-                result.add((code, index))
+            for alias in aliases:
+                # Allow inflectional suffixes on longer stems (RU/KK/EN), exact boundaries on short acronyms
+                pattern = (
+                    r"(?<!\w)" + re.escape(alias)
+                    if len(alias) >= 5 and alias[-1].isalpha()
+                    else r"(?<!\w)" + re.escape(alias) + r"(?!\w)"
+                )
+                if re.search(pattern, value):
+                    result.add((code, index))
+                    break
     return frozenset(result)
 
 

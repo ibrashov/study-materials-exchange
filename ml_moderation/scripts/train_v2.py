@@ -38,6 +38,18 @@ OTHER = (
     ("Music theory", "Теория музыки", "Музыка теориясы"),
     ("TCP/IP", "Компьютерные сети", "Компьютерлік желілер"),
     ("ReLU", "PyTorch", "x² + y²"),
+    ("Cooking pasta recipe", "Рецепт пасты карбонара", "Тамақ дайындау рецепті"),
+    ("Biology cell division", "Биология деление клетки", "Биология жасуша бөлінуі"),
+    ("History of Rome", "История Древнего Рима", "Ежелгі Рим тарихы"),
+    ("World literature essay", "Эссе по мировой литературе", "Әлем әдебиеті бойынша эссе"),
+    ("Macroeconomics inflation report", "Макроэкономика и инфляция", "Макроэкономика және инфляция"),
+    ("Linear algebra eigenvalues", "Линейная алгебра собственные значения", "Сызықтық алгебра матрицалар"),
+    ("Quantum mechanics wave function", "Квантовая механика волновая функция", "Кванттық механика толқындық функция"),
+    ("Travel guide to Paris", "Путеводитель по Парижу", "Парижге саяхат нұсқаулығы"),
+    ("Movie review and cinema", "Рецензия на новый фильм", "Жаңа фильмге шолу"),
+    ("Philosophy ethics seminar", "Философия и этика", "Философия және этика"),
+    ("Art history renaissance", "История искусства эпохи Возрождения", "Өнер тарихы ренессанс"),
+    ("Geography climate zones", "География климатические пояса", "География климаттық белдеулер"),
 )
 
 
@@ -112,7 +124,7 @@ def run(rows, features, name):
     train, val, test = (np.array([r["split"] == s for r in rows])
                         for s in ("train", "validation", "test"))
     report = {"counts": dict(zip(("train", "validation", "test"), map(lambda a: int(a.sum()), (train, val, test))))}
-    candidates = {"hybrid_logistic": LogisticRegression(max_iter=1000, C=10, class_weight="balanced")}
+    candidates = {"hybrid_logistic": LogisticRegression(max_iter=1000, C=2.0, class_weight="balanced")}
     if name == "meaning":
         candidates["linear_svm"] = LinearSVC(class_weight="balanced")
     for label, classifier in candidates.items():

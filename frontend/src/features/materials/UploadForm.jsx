@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { request, uploadMaterial } from '../../api/client';
 import { errorKey } from '../../locales/messages';
+const UPLOAD_422_KEYS = {
+  'The material title does not match the selected course. Please provide a relevant academic title.': 'upload.irrelevantTitle',
+  'Please provide a meaningful material title.': 'upload.meaninglessTitle',
+  'Please include the topic of the lecture or assignment in the material title.': 'upload.insufficientContext',
+  'Please choose an appropriate name for your study material.': 'upload.inappropriateName',
+};
+
+function uploadErrorKey(err) {
+  if (err?.status === 422 && UPLOAD_422_KEYS[err.message]) {
+    return UPLOAD_422_KEYS[err.message];
+  }
+  return errorKey(err);
+}
+
 export default function UploadForm({ session, t }) {
   const [choices, setChoices] = useState(null);
   const [error, setError] = useState('');
@@ -26,7 +40,7 @@ export default function UploadForm({ session, t }) {
     if (!file.size || file.size > 52428800 || !file.name.toLowerCase().endsWith('.pdf')) return setError('badFile');
     setBusy(true);
     try { await uploadMaterial(data, session.token); setSuccess(true); form.reset(); }
-    catch (err) { setError(errorKey(err)); }
+    catch (err) { setError(uploadErrorKey(err)); }
     finally { setBusy(false); }
   }
   return <section className="form-panel"><h1>{t('upload')}</h1><p>{t('fileHint')}</p>

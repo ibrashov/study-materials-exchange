@@ -5,6 +5,7 @@ import os
 from fastapi import HTTPException
 
 from ml_moderation.validator_v2 import validate_title
+from ..core.config import settings
 
 logger = logging.getLogger(__name__)
 MESSAGES = {
@@ -17,8 +18,16 @@ MESSAGES = {
 }
 
 
+def _validator_enabled() -> bool:
+    raw = os.getenv("MATERIAL_VALIDATOR_V2_ENABLED")
+    if raw is not None:
+        return raw.lower() in {"true", "1"}
+    # Auto-enable on cloud deployments (Render/Supabase) while keeping local legacy tests green unless opted in.
+    return os.getenv("RENDER", "").lower() in {"true", "1"} or settings.storage_backend == "supabase"
+
+
 def enforce_title_validation(title, course):
-    if os.getenv("MATERIAL_VALIDATOR_V2_ENABLED", "false").lower() not in {"true", "1"}:
+    if not _validator_enabled():
         return
     context = " ".join(filter(None, (course.course_name, course.description)))
     selection = os.getenv("MATERIAL_VALIDATOR_V2_MODEL", "v2_0")

@@ -131,3 +131,36 @@ class TitleValidatorTests(unittest.TestCase):
                     with self.assertRaises(HTTPException) as raised:
                         enforce_title_validation("SQL", course)
                 self.assertEqual(raised.exception.status_code, 503)
+
+    def test_cloud_auto_enable_and_explicit_rollback(self):
+        from backend.app.services.title_validation import enforce_title_validation
+        course = SimpleNamespace(course_code="PROG101", course_name="Introduction to Programming", description=None)
+        with patch.dict("os.environ", {"RENDER": "true"}, clear=False):
+            with patch.dict("os.environ", {"MATERIAL_VALIDATOR_V2_ENABLED": "false"}):
+                enforce_title_validation("SQL Joins and Queries", course)
+            import os
+            saved = os.environ.pop("MATERIAL_VALIDATOR_V2_ENABLED", None)
+            try:
+                with self.assertRaises(HTTPException) as raised:
+                    enforce_title_validation("SQL Joins and Queries", course)
+                self.assertEqual(raised.exception.status_code, 422)
+            finally:
+                if saved is not None:
+                    os.environ["MATERIAL_VALIDATOR_V2_ENABLED"] = saved
+
+    def test_expanded_academic_relevance_and_offtopic_rejection(self):
+        for title, right_course, wrong_course in (
+            ("Binary Search Algorithm", ("PROG101", "Introduction to Programming"), ("DB101", "Database Systems")),
+            ("Variables and Data Types", ("PROG101", "Introduction to Programming"), ("BIS101", "Basics of Information Systems")),
+            ("Relational tables and primary keys", ("DB101", "Database Systems"), ("PROG101", "Introduction to Programming")),
+            ("Транзакции и изоляция в PostgreSQL", ("DB101", "Database Systems"), ("BIS101", "Basics of Information Systems")),
+            ("Digital transformation in enterprise", ("BIS101", "Basics of Information Systems"), ("PROG101", "Introduction to Programming")),
+            ("Цифровая трансформация бизнес-процессов", ("BIS101", "Basics of Information Systems"), ("DB101", "Database Systems")),
+        ):
+            with self.subTest(title=title):
+                self.assertEqual(validate_title(title, *right_course)[0], "ACCEPTED")
+                self.assertEqual(validate_title(title, *wrong_course)[0], "IRRELEVANT_TITLE")
+        for off_topic in ("Cooking pasta recipe", "Biology cell division", "History of Rome"):
+            for code, name in (("PROG101", "Introduction to Programming"), ("DB101", "Database Systems"), ("BIS101", "Basics of Information Systems")):
+                with self.subTest(title=off_topic, code=code):
+                    self.assertEqual(validate_title(off_topic, code, name)[0], "IRRELEVANT_TITLE")
